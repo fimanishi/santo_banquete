@@ -16,6 +16,12 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
+import website.views
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^$', website.views.index, name="index"),
+    url(r'^hello$', website.views.hello, name="hello"),
+    url(r'^contact_me$', website.views.contact_me, name="contact_me"),
+    url(r'^thanks$', website.views.thanks, name="thanks"),
 ]
