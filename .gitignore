@@ -90,3 +90,4 @@ ENV/
 
 # manage.py secret file
 SECRETS.ENV
+db.sqlite3

@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% load static %}
+
+
+{% block loggedin %}
+  <li><a>Usuário: {{ request.user.username }}</a></li>
+  <li><a href="/logout" style="text-decoration: underline;">Sair</a></li>
+{% endblock %}

@@ -1,0 +1,14 @@
+.bg {
+  background-color: white;
+}
+
+#nav_color {
+  background-color: #FBE9D1;
+  border-color: red;
+}
+
+#logo_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

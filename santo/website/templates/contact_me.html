@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load static %}
+
+{% block content %}
+<form action="/contact_me" method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  <label>Your Name</label>
+  <input type="text" name="your_name" /><br />
+  <label>Your Email</label>
+  <input type="email" name="your_email" /><br />
+  <label>Your Question</label>
+  <textarea name="your_question"></textarea><br />
+  <label>Your Image</label>
+  <input type="file" name="your_image"/><br />
+  <input type="submit" value="Submit" /><br />
+  {{ form.errors }}
+</form>
+{% endblock %}
