@@ -7,6 +7,10 @@ from django.core.mail import EmailMessage
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.contrib.auth import logout, login
+import website.models as models
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 
 # Create your views here.
 
@@ -20,15 +24,44 @@ def index(request):
             user = authenticate(request, username=form.cleaned_data["user_name"], password=form.cleaned_data["user_password"])
             if user is not None:
                 login(request, user)
-                return http.HttpResponseRedirect("/authenticated")
+                return http.HttpResponseRedirect("/authenticated/")
     context = {}
     return TemplateResponse(request, "index.html", context)
 
-
+@login_required
 def authenticated(request):
     context = {}
     return TemplateResponse(request, "authenticated.html", context)
 
+@login_required
+def pedidos(request):
+    context = {}
+    return TemplateResponse(request, "pedidos.html", context)
+
+@login_required
+def producao(request):
+    # gets all the distinct types of food categories
+    types = models.Produto.objects.filter(~Q(tipo="bebida")).distinct("tipo")
+    # gets all products
+    products = models.Produto.objects.all()
+    # creates a dictionary to store all categories and products
+    context = {'products': {}}
+    # dynamically creates the dictionary containg categories and products
+    for i in products:
+        for j in types:
+            context['products'][j.tipo] = models.Produto.objects.filter(tipo=j.tipo)
+    # adds the categories
+    context["types"] = types
+
+    return TemplateResponse(request, "producao.html", context)
+
+def test(request):
+    produto = get_object_or_404(models.Ingrediente, id=1)
+    print(produto.nome)
+    print(produto.estoque)
+    print(produto.estoque)
+    context = {}
+    return TemplateResponse(request, "index.html", context)
 # def hello(request):
 #     # form  = website.forms.NameForm(request.POST or None)
 #     #

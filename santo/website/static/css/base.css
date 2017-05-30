@@ -1,3 +1,13 @@
+html {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+}
+
 .bg {
   background-color: white;
 }
@@ -11,4 +21,45 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+#main {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.main_buttons {
+  background-color: #D7211A;
+  color: #FBE9D1;
+  width: 50%;
+  height: 50px;
+  display: block;
+  padding: 0;
+  margin: 20px auto;
+
+  text-align: center;
+  touch-action: manipulation;
+  cursor: pointer;
+  user-select: none;
+  background-image: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
+@media screen and (min-width: 480px) {
+  .main_buttons {
+    font-size: 2em;
+  }
+}
+
+#buttons {
+  width: 100%;
+}
+
+select {
+  text-align: center;
 }

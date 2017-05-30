@@ -23,7 +23,10 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', website.views.index, name="index"),
     url(r'^logout/$', logout,{'next_page': '/'}),
-    url(r'^authenticated$', website.views.authenticated, name="authenticated")
+    url(r'^authenticated/$', website.views.authenticated, name="authenticated"),
+    url(r'^test/$', website.views.test, name="test"),
+    url(r'^pedidos/$', website.views.pedidos, name="pedidos"),
+    url(r'^producao/$', website.views.producao, name="producao"),
     # url(r'^hello$', website.views.hello, name="hello"),
     # url(r'^contact_me$', website.views.contact_me, name="contact_me"),
     # url(r'^thanks$', website.views.thanks, name="thanks"),

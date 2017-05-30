@@ -1,0 +1,55 @@
+{% extends "base.html" %}{% load static %}
+
+
+{% block loggedin %}
+  <li><a>Usuário: {{ request.user.username }}</a></li>
+  <li><a href="/logout" style="text-decoration: underline;">Sair</a></li>
+{% endblock %}
+
+{% block content %}
+  <div>
+    Tipo:
+
+    <select id="product_type" class="selectpicker" title="Selecione o tipo" onchange="get_value(event)">
+      {% for type in types %}
+      <option>{{ type.tipo }}</option>
+      {% endfor %}
+    </select>
+    <select id="product_list" class="selectpicker" title="Selecione o produto">
+    </select>
+  </div>
+
+
+{% endblock %}
+
+{% block script %}
+  <script>
+    // creates an object with the types as keys and products as values
+    var product_list = {
+      // takes keys and values from the
+      {% for tipo, query in products.items %}
+      "{{ tipo }}": [
+      {% for produto in query %}
+      '{{ produto.nome }}',
+      {% endfor %}
+    ],
+      {% endfor %}
+    };
+    function get_value(event) {
+      $(document).ready(function (){
+        $("#product_list").children().remove();
+        console.log("test");
+        var type = product_list[$("#product_type").val()];
+        console.log(type);
+        for(var i = 0; i < type.length; i++){
+          console.log(type[i]);
+          $("#product_list").append("<option>" + type[i] + "</option>");
+          $('.selectpicker').selectpicker('refresh');
+        }
+      });
+    }
+
+
+
+  </script>
+{% endblock %}
