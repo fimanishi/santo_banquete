@@ -7,16 +7,44 @@
 {% endblock %}
 
 {% block content %}
-  <div>
-    Tipo:
-
-    <select id="product_type" class="selectpicker" title="Selecione o tipo" onchange="get_value(event)">
-      {% for type in types %}
-      <option>{{ type.tipo }}</option>
-      {% endfor %}
-    </select>
-    <select id="product_list" class="selectpicker" title="Selecione o produto">
-    </select>
+  <div class="my_menu">
+    <div class="my_menu2">
+      <div>
+        <p>Tipo:</p>
+        <div style="margin-bottom: 5px;">
+          <select id="product_type" class="selectpicker" title="Selecione o tipo" onchange="get_type(event)">
+            {% for type in types %}
+            <option>{{ type.tipo }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div>
+        <p>Produto:</p>
+        <div style="margin-bottom: 5px;">
+          <select id="product_list" class="selectpicker" title="Selecione o produto"> <!-- data-size="x"-->
+          </select>
+        </div>
+      </div>
+      <div>
+        <p>Quantidade:</p>
+        <div>
+          <div id="last_production_line" class="input-group">
+            <input id="quantidade" type="text" class="form-control" placeholder="Quantidade" aria-describedby="basic-addon1">
+            <button type="button" class="btn btn-danger">Adicionar</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p>Filtro:</p>
+        <div>
+          <div id="last_production_line" class="input-group">
+            <input class="datepicker" data-date-format="mm/dd/yyyy">
+            <button type="button" class="btn btn-danger">Filtrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
 
@@ -24,6 +52,7 @@
 
 {% block script %}
   <script>
+    $('.datepicker').datepicker();
     // creates an object with the types as keys and products as values
     var product_list = {
       // takes keys and values from the
@@ -35,7 +64,7 @@
     ],
       {% endfor %}
     };
-    function get_value(event) {
+    function get_type(event) {
       $(document).ready(function (){
         $("#product_list").children().remove();
         console.log("test");

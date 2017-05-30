@@ -8,12 +8,17 @@ body {
   height: 100%;
 }
 
+p {
+  margin: 0;
+  padding: 0;
+}
+
 .bg {
   background-color: white;
 }
 
 #nav_color {
-  background-color: #FBE9D1;
+  background-color: #FBE9D2;
   border-color: red;
 }
 
@@ -33,7 +38,7 @@ body {
 
 .main_buttons {
   background-color: #D7211A;
-  color: #FBE9D1;
+  color: #FDE9D2;
   width: 50%;
   height: 50px;
   display: block;
@@ -62,4 +67,30 @@ body {
 
 select {
   text-align: center;
+}
+
+#quantidade {
+  width: 100px;
+  display: inline-block;
+}
+
+#last_production_line {
+  width: 220px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.my_menu {
+  display: flex;
+  justify-content: center;
+}
+
+.my_menu2 > div {
+  margin: 0 10px;
+}
+
+@media screen and (min-width: 480px) {
+  .my_menu2 > div {
+    display: inline-block;
+  }
 }
