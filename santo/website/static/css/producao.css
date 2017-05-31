@@ -1,0 +1,29 @@
+select {
+  text-align: center;
+}
+
+.last_production_line.input-group .field_sizing.form-control {
+  width: 100px;
+  display: inline-block;
+}
+
+.last_production_line.input-group {
+  width: 220px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.my_menu {
+  display: flex;
+  justify-content: center;
+}
+
+.my_menu2 > div {
+  margin: 0 10px;
+}
+
+@media screen and (min-width: 780px) {
+  .my_menu2 > div {
+    display: inline-block;
+  }
+}

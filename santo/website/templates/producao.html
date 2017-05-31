@@ -1,5 +1,12 @@
 {% extends "base.html" %}{% load static %}
 
+{% block css %}
+  <link rel="stylesheet" type="text/css" href="/static/css/dist/css_datepicker/bootstrap-datepicker.min.css">
+  <link rel="stylesheet" type="text/css" href="/static/css/dist/css/bootstrap-select.min.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/producao.css"
+
+{% endblock %}
+
 
 {% block loggedin %}
   <li><a>Usuário: {{ request.user.username }}</a></li>
@@ -8,49 +15,54 @@
 
 {% block content %}
   <div class="my_menu">
-    <div class="my_menu2">
-      <div>
-        <p>Tipo:</p>
-        <div style="margin-bottom: 5px;">
-          <select id="product_type" class="selectpicker" title="Selecione o tipo" onchange="get_type(event)">
-            {% for type in types %}
-            <option>{{ type.tipo }}</option>
-            {% endfor %}
-          </select>
-        </div>
-      </div>
-      <div>
-        <p>Produto:</p>
-        <div style="margin-bottom: 5px;">
-          <select id="product_list" class="selectpicker" title="Selecione o produto"> <!-- data-size="x"-->
-          </select>
-        </div>
-      </div>
-      <div>
-        <p>Quantidade:</p>
+    <form id="producao_form" name="producao" action="./" onsubmit="return validateForm()" method="">
+      {% csrf_token %}
+      <div class="my_menu2">
         <div>
-          <div id="last_production_line" class="input-group">
-            <input id="quantidade" type="text" class="form-control" placeholder="Quantidade" aria-describedby="basic-addon1">
-            <button type="button" class="btn btn-danger">Adicionar</button>
+          <p>Tipo:</p>
+          <div style="margin-bottom: 5px;">
+            <select id="product_type" class="selectpicker" title="Selecione o tipo" onchange="get_type(event)" name="Tipo">
+              {% for type in types %}
+              <option>{{ type.tipo }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div>
+          <p>Produto:</p>
+          <div style="margin-bottom: 5px;">
+            <select id="product_list" class="selectpicker" title="Selecione o produto" name="Produto"> <!-- data-size="x"-->
+            </select>
+          </div>
+        </div>
+        <div>
+          <p>Quantidade:</p>
+          <div>
+            <div style="margin-bottom: 5px;" class="last_production_line input-group">
+              <input type="text" class="field_sizing form-control" placeholder="Quantidade" aria-describedby="basic-addon1" name="Quantidade">
+              <button type="submit" class="btn btn-danger" value="add">Adicionar</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p>Filtro:</p>
+          <div>
+            <div style="width: 200px; margin-bottom: 5px;" class="last_production_line input-group">
+              <input id="date_field" class="field_sizing form-control datepicker" data-date-format="mm/dd/yyyy" placeholder="Data" data-date-autoclose=True name="Data">
+              <button type="submit" class="btn btn-primary" value="filter">Filtrar</button>
+            </div>
           </div>
         </div>
       </div>
-      <div>
-        <p>Filtro:</p>
-        <div>
-          <div id="last_production_line" class="input-group">
-            <input class="datepicker" data-date-format="mm/dd/yyyy">
-            <button type="button" class="btn btn-danger">Filtrar</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    </form>
   </div>
 
 
 {% endblock %}
 
 {% block script %}
+  <script src="/static/js/js/bootstrap-select.min.js"></script>
+  <script src="/static/js/js_datepicker/bootstrap-datepicker.min.js"></script>
   <script>
     $('.datepicker').datepicker();
     // creates an object with the types as keys and products as values
@@ -64,18 +76,36 @@
     ],
       {% endfor %}
     };
+
     function get_type(event) {
       $(document).ready(function (){
         $("#product_list").children().remove();
-        console.log("test");
         var type = product_list[$("#product_type").val()];
-        console.log(type);
         for(var i = 0; i < type.length; i++){
-          console.log(type[i]);
           $("#product_list").append("<option>" + type[i] + "</option>");
           $('.selectpicker').selectpicker('refresh');
         }
       });
+    }
+
+    function validateForm() {
+      var check = document.activeElement.value;
+      var list = ["Tipo", "Produto", "Quantidade", "Data"];
+      var missing = false;
+      if (check === "add"){
+        for (var i = 0; i < list.length-1; i++){
+          if (document.forms["producao"][list[i]].value == "") {
+            alert(list[i] + " tem que ser escolhido.");
+            return false;
+          }
+        }
+        $("#producao_form").attr("method", "POST");
+        return true;
+      }
+      else if (check === "filter"){
+        $("#producao_form").attr("method", "GET");
+        return true;
+        }
     }
 
 

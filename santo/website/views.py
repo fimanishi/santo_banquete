@@ -40,6 +40,16 @@ def pedidos(request):
 
 @login_required
 def producao(request):
+    # handling forms
+    if request.method == "POST":
+        form = website.forms.ProducaoData(request.POST or None)
+        print(form)
+        if form.is_valid():
+            print("test")
+            print(form.cleaned_data("Tipo"))
+
+
+
     # gets all the distinct types of food categories
     types = models.Produto.objects.filter(~Q(tipo="bebida")).distinct("tipo")
     # gets all products

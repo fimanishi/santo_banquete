@@ -7,5 +7,11 @@ from django import forms
 #     your_image = forms.FileField(label="Your Image")
 
 class UserForm (forms.Form):
-    user_name = forms.CharField(label="username", max_length=20)
-    user_password = forms.CharField(label="password", max_length=20)
+    user_name = forms.CharField(max_length=20)
+    user_password = forms.CharField(max_length=20)
+
+class ProducaoData (forms.Form):
+    Tipo = forms.CharField(max_length=50)
+    Produto = forms.CharField(max_length=50)
+    Quantidade = forms.IntegerField()
+    Data = forms.DateField()
