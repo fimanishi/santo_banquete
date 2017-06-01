@@ -14,4 +14,4 @@ class ProducaoData (forms.Form):
     Tipo = forms.CharField(max_length=50)
     Produto = forms.CharField(max_length=50)
     Quantidade = forms.IntegerField()
-    Data = forms.DateField()
+    Data = forms.DateField(required=False)

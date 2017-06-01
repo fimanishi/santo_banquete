@@ -56,7 +56,11 @@
       </div>
     </form>
   </div>
-
+  {% if success %}
+  <div class="message">
+    <div class="alert alert-success" role="alert">Produto adicionado com sucesso</div>
+  </div>
+  {% endif %}
 
 {% endblock %}
 

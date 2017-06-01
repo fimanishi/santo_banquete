@@ -18,7 +18,6 @@ from django.db.models import Q
 
 def index(request):
     form = website.forms.UserForm(request.POST or None)
-
     if request.method == "POST":
         if form.is_valid():
             user = authenticate(request, username=form.cleaned_data["user_name"], password=form.cleaned_data["user_password"])
@@ -41,12 +40,15 @@ def pedidos(request):
 @login_required
 def producao(request):
     # handling forms
+    success = False
+
     if request.method == "POST":
         form = website.forms.ProducaoData(request.POST or None)
-        print(form)
         if form.is_valid():
-            print("test")
-            print(form.cleaned_data("Tipo"))
+            product_id = models.Produto.objects.get(nome=form.cleaned_data["Produto"])
+            producao_add = models.Producao.objects.create(produto=product_id, quantidade=form.cleaned_data["Quantidade"])
+            #producao_add.save()
+            success = True
 
 
 
@@ -62,6 +64,7 @@ def producao(request):
             context['products'][j.tipo] = models.Produto.objects.filter(tipo=j.tipo)
     # adds the categories
     context["types"] = types
+    context["success"] = success
 
     return TemplateResponse(request, "producao.html", context)
 

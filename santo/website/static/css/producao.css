@@ -27,3 +27,9 @@ select {
     display: inline-block;
   }
 }
+
+.message {
+  width: 300px;
+  margin: 30px auto;
+  text-align: center;
+}

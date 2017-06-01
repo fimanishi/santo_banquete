@@ -25,8 +25,8 @@ class Ingrediente(models.Model):
 class Quantidade(models.Model):
     class Meta:
         db_table = "quantidade"
-    produto_id = models.ForeignKey(Produto, on_delete = models.CASCADE)
-    ingrediente_id = models.ForeignKey(Ingrediente, on_delete = models.CASCADE)
+    produto = models.ForeignKey(Produto, on_delete = models.CASCADE)
+    ingrediente = models.ForeignKey(Ingrediente, on_delete = models.CASCADE)
     quantidade_receita = models.FloatField()
     quantidade_unitaria = models.FloatField()
     rendimento = models.FloatField()
@@ -36,5 +36,5 @@ class Producao(models.Model):
     class Meta:
         db_table = "produção"
     data = models.DateField(auto_now_add = True)
-    produto_id = models.ForeignKey(Produto, on_delete = models.CASCADE)
+    produto = models.ForeignKey(Produto, on_delete = models.CASCADE)
     quantidade = models.IntegerField()
