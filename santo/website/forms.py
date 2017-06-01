@@ -11,7 +11,27 @@ class UserForm (forms.Form):
     user_password = forms.CharField(max_length=20)
 
 class ProducaoData (forms.Form):
-    Tipo = forms.CharField(max_length=50)
-    Produto = forms.CharField(max_length=50)
-    Quantidade = forms.IntegerField()
-    Data = forms.DateField(required=False)
+    tipo = forms.CharField(max_length=50)
+    produto = forms.CharField(max_length=50, required=False)
+    quantidade = forms.IntegerField(required=False)
+    data_field = forms.DateField(required=False)
+    button = forms.CharField(max_length=10)
+
+    def clean(self):
+        cleaned_data = super(ProducaoData, self).clean()
+        tipo = cleaned_data.get("tipo")
+        produto = cleaned_data.get("produto")
+        quantidade = cleaned_data.get("quantidade")
+        button = cleaned_data.get("button")
+        data_field = forms.DateField("data_field")
+
+        if button == "add":
+            if not (tipo and produto and quantidade):
+                raise forms.ValidationError(
+                "Didn't input all fields for add."
+                )
+        elif button == "filter":
+            if quantidade and (not produto):
+                raise forms.ValidationError(
+                "Didn't input valid fields for filter."
+                )

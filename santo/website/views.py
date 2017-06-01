@@ -11,6 +11,8 @@ import website.models as models
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from datetime import date
+from django.core.exceptions import ObjectDoesNotExist
 
 # Create your views here.
 
@@ -40,15 +42,33 @@ def pedidos(request):
 @login_required
 def producao(request):
     # handling forms
-    success = False
-
+    success = 1
+    filtered = []
     if request.method == "POST":
         form = website.forms.ProducaoData(request.POST or None)
         if form.is_valid():
-            product_id = models.Produto.objects.get(nome=form.cleaned_data["Produto"])
-            producao_add = models.Producao.objects.create(produto=product_id, quantidade=form.cleaned_data["Quantidade"])
-            #producao_add.save()
-            success = True
+            product_id = models.Produto.objects.get(nome=form.cleaned_data["produto"])
+            try:
+                check = models.Producao.objects.get(produto_id=product_id.id, data=date.today())
+                check.quantidade += form.cleaned_data["quantidade"]
+                check.save()
+            except ObjectDoesNotExist:
+                producao_add = models.Producao.objects.create(produto=product_id, quantidade=form.cleaned_data["quantidade"])
+            success = 2
+        else:
+            success = 3
+    elif request.method == "GET":
+        form = website.forms.ProducaoData(request.GET or None)
+        if form.is_valid():
+            if (form.cleaned_data["data_field"]):
+                if (form.cleaned_data["produto"]):
+                    print(date.today())
+                    filtered = models.Producao.objects.filter(data__gte = form.cleaned_data["data_field"], produto_id__nome = form.cleaned_data["produto"])
+            if filtered:
+                success = 4
+            else:
+                success = 5
+
 
 
 
@@ -65,6 +85,7 @@ def producao(request):
     # adds the categories
     context["types"] = types
     context["success"] = success
+    context["filtered"] = filtered
 
     return TemplateResponse(request, "producao.html", context)
 

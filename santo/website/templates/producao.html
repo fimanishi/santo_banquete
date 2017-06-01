@@ -3,7 +3,7 @@
 {% block css %}
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css_datepicker/bootstrap-datepicker.min.css">
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css/bootstrap-select.min.css" />
-  <link rel="stylesheet" type="text/css" href="/static/css/producao.css"
+  <link rel="stylesheet" type="text/css" href="/static/css/producao.css" />
 
 {% endblock %}
 
@@ -15,13 +15,13 @@
 
 {% block content %}
   <div class="my_menu">
-    <form id="producao_form" name="producao" action="./" onsubmit="return validateForm()" method="">
+    <form id="producao_form" action="./" onsubmit="return validateForm()" method="">
       {% csrf_token %}
       <div class="my_menu2">
         <div>
           <p>Tipo:</p>
           <div style="margin-bottom: 5px;">
-            <select id="product_type" class="selectpicker" title="Selecione o tipo" onchange="get_type(event)" name="Tipo">
+            <select id="product_type" class="selectpicker" title="Selecione o tipo" onchange="get_type(event)" name="tipo">
               {% for type in types %}
               <option>{{ type.tipo }}</option>
               {% endfor %}
@@ -31,7 +31,7 @@
         <div>
           <p>Produto:</p>
           <div style="margin-bottom: 5px;">
-            <select id="product_list" class="selectpicker" title="Selecione o produto" name="Produto"> <!-- data-size="x"-->
+            <select id="product_list" class="selectpicker" title="Selecione o produto" name="produto"> <!-- data-size="x"-->
             </select>
           </div>
         </div>
@@ -39,8 +39,8 @@
           <p>Quantidade:</p>
           <div>
             <div style="margin-bottom: 5px;" class="last_production_line input-group">
-              <input type="text" class="field_sizing form-control" placeholder="Quantidade" aria-describedby="basic-addon1" name="Quantidade">
-              <button type="submit" class="btn btn-danger" value="add">Adicionar</button>
+              <input type="text" class="field_sizing form-control" placeholder="Quantidade" aria-describedby="basic-addon1" name="quantidade">
+              <button type="submit" class="btn btn-danger" name="button" value="add">Adicionar</button>
             </div>
           </div>
         </div>
@@ -48,21 +48,46 @@
           <p>Filtro:</p>
           <div>
             <div style="width: 200px; margin-bottom: 5px;" class="last_production_line input-group">
-              <input id="date_field" class="field_sizing form-control datepicker" data-date-format="mm/dd/yyyy" placeholder="Data" data-date-autoclose=True name="Data">
-              <button type="submit" class="btn btn-primary" value="filter">Filtrar</button>
+              <input id="date_field" class="field_sizing form-control datepicker" data-date-format="mm/dd/yyyy" placeholder="Data" data-date-autoclose=true data-date-today-highlight=true name="data_field">
+              <button type="submit" class="btn btn-primary" name="button" value="filter">Filtrar</button>
             </div>
           </div>
         </div>
       </div>
     </form>
   </div>
-  {% if success %}
+  {% if success == 2 %}
   <div class="message">
     <div class="alert alert-success" role="alert">Produto adicionado com sucesso</div>
+  </div>
+  {% elif success == 3 %}
+  <div class="message">
+    <div class="alert alert-danger" role="alert">Selecione tipo, produto e quantidade</div>
+  </div>
+  {% elif success == 4 %}
+  <div>
+  {% for i in filtered %}
+  <div class="filtered">
+    <div class="alert alert-info" role="alert">
+      <div style="display: flex; justify-content: space-between;">
+        <div>
+          Produto: {{ i.produto.nome }}
+        </div>
+        <div>
+          Quantidade: {{ i.quantidade }}
+        </div>
+        <div>
+          Data: {{ i.data}}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
   </div>
   {% endif %}
 
 {% endblock %}
+
 
 {% block script %}
   <script src="/static/js/js/bootstrap-select.min.js"></script>
@@ -94,15 +119,15 @@
 
     function validateForm() {
       var check = document.activeElement.value;
-      var list = ["Tipo", "Produto", "Quantidade", "Data"];
+      // var list = ["Tipo", "Produto", "Quantidade", "Data"];
       var missing = false;
       if (check === "add"){
-        for (var i = 0; i < list.length-1; i++){
-          if (document.forms["producao"][list[i]].value == "") {
-            alert(list[i] + " tem que ser escolhido.");
-            return false;
-          }
-        }
+        // for (var i = 0; i < list.length-1; i++){
+        //   if (document.forms["producao"][list[i]].value == "") {
+        //     alert(list[i] + " tem que ser escolhido.");
+        //     return false;
+        //   }
+        // }
         $("#producao_form").attr("method", "POST");
         return true;
       }
