@@ -13,7 +13,7 @@ class Ingrediente(models.Model):
     class Meta:
         db_table = "ingrediente"
     nome = models.CharField(max_length = 50)
-    subcategoria = models.CharField(max_length = 20)
+    tipo = models.CharField(max_length = 20)
     unidade = models.CharField(max_length = 10)
     ultima_compra = models.DateField()
     estoque = models.FloatField()
@@ -38,3 +38,4 @@ class Producao(models.Model):
     data = models.DateField(auto_now_add = True)
     produto = models.ForeignKey(Produto, on_delete = models.CASCADE)
     quantidade = models.IntegerField()
+    usuario = models.CharField(max_length = 50)

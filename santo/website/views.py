@@ -17,7 +17,7 @@ from django.core.exceptions import ObjectDoesNotExist
 # Create your views here.
 
 
-
+# login page, only accessible when the user is not logged in
 def index(request):
     form = website.forms.UserForm(request.POST or None)
     if request.method == "POST":
@@ -48,22 +48,38 @@ def producao(request):
         form = website.forms.ProducaoData(request.POST or None)
         if form.is_valid():
             product_id = models.Produto.objects.get(nome=form.cleaned_data["produto"])
+            # function to update the stock
+
+            quantidades = models.Quantidade.objects.filter(produto_id=product_id.id)
+            for quantidade in quantidades:
+                quantidade_get = models.Quantidade.objects.get(id=quantidade.id)
+                ingredient_to_change = models.Ingrediente.objects.get(id=quantidade_get.ingrediente_id)
+                ingredient_to_change.estoque -= quantidade_get.quantidade_unitaria * form.cleaned_data["quantidade"]
+                ingredient_to_change.save()
+
+
             try:
                 check = models.Producao.objects.get(produto_id=product_id.id, data=date.today())
                 check.quantidade += form.cleaned_data["quantidade"]
                 check.save()
             except ObjectDoesNotExist:
-                producao_add = models.Producao.objects.create(produto=product_id, quantidade=form.cleaned_data["quantidade"])
+                models.Producao.objects.create(produto=product_id, quantidade=form.cleaned_data["quantidade"], usuario = request.user )
             success = 2
         else:
             success = 3
     elif request.method == "GET":
         form = website.forms.ProducaoData(request.GET or None)
         if form.is_valid():
-            if (form.cleaned_data["data_field"]):
-                if (form.cleaned_data["produto"]):
-                    print(date.today())
+            if form.cleaned_data["data_field"]:
+                if form.cleaned_data["produto"]:
                     filtered = models.Producao.objects.filter(data__gte = form.cleaned_data["data_field"], produto_id__nome = form.cleaned_data["produto"])
+                elif form.cleaned_data["tipo"]:
+                    filtered = models.Producao.objects.filter(data__gte = form.cleaned_data["data_field"], produto_id__tipo = form.cleaned_data["tipo"])
+            elif not form.cleaned_data["data_field"]:
+                if form.cleaned_data["produto"]:
+                    filtered = models.Producao.objects.filter(produto_id__nome = form.cleaned_data["produto"])
+                elif form.cleaned_data["tipo"]:
+                    filtered = models.Producao.objects.filter(produto_id__tipo = form.cleaned_data["tipo"])
             if filtered:
                 success = 4
             else:
@@ -78,7 +94,7 @@ def producao(request):
     products = models.Produto.objects.all()
     # creates a dictionary to store all categories and products
     context = {'products': {}}
-    # dynamically creates the dictionary containg categories and products
+    # dynamically creates the dictionary containing categories and products
     for i in products:
         for j in types:
             context['products'][j.tipo] = models.Produto.objects.filter(tipo=j.tipo)
@@ -88,6 +104,68 @@ def producao(request):
     context["filtered"] = filtered
 
     return TemplateResponse(request, "producao.html", context)
+
+@login_required
+def estoque(request):
+    # handling forms
+    success = 1
+    filtered = []
+    if request.method == "POST":
+        form = website.forms.EstoqueData(request.POST or None)
+        if form.is_valid():
+            ingredient_id = models.Ingrediente.objects.get(nome=form.cleaned_data["ingrediente"])
+            # function to update the stock
+            ingredient_id.estoque += form.cleaned_data["quantidade"]
+            ingredient_id.total_comprado += form.cleaned_data["quantidade"]
+            ingredient_id.ultima_compra = date.today()
+            ingredient_id.valor_comprado += form.cleaned_data["valor"]
+            try:
+                ingredient_id.preco_medio = ingredient_id.valor_comprado / ingredient_id.total_comprado
+            except ZeroDivisionError:
+                ingredient_id.preco_medio = 0
+
+            ingredient_id.save()
+            success = 2
+        else:
+            success = 3
+    elif request.method == "GET":
+        form = website.forms.EstoqueData(request.GET or None)
+        if form.is_valid():
+            if form.cleaned_data["data_field"]:
+                if form.cleaned_data["ingrediente"]:
+                    filtered = models.Ingrediente.objects.filter(data__gte = form.cleaned_data["data_field"], nome = form.cleaned_data["ingrediente"])
+                elif form.cleaned_data["tipo"]:
+                    filtered = models.Ingrediente.objects.filter(data__gte = form.cleaned_data["data_field"], tipo = form.cleaned_data["tipo"])
+            elif not form.cleaned_data["data_field"]:
+                if form.cleaned_data["ingrediente"]:
+                    filtered = models.Ingrediente.objects.filter(nome = form.cleaned_data["ingrediente"])
+                elif form.cleaned_data["tipo"]:
+                    filtered = models.Ingrediente.objects.filter(tipo = form.cleaned_data["tipo"])
+            if filtered:
+                success = 4
+            else:
+                success = 5
+
+
+
+
+    # gets all the distinct types of ingredient categories
+    types = models.Ingrediente.objects.all().distinct("tipo")
+    # gets all products
+    ingredients = models.Ingrediente.objects.all()
+    # creates a dictionary to store all categories and products
+    context = {'ingredients': {}}
+    # dynamically creates the dictionary containing categories and products
+    for i in ingredients:
+        for j in types:
+            context['ingredients'][j.tipo] = models.Ingrediente.objects.filter(tipo=j.tipo)
+    print(context["ingredients"])
+    # adds the categories
+    context["types"] = types
+    context["success"] = success
+    context["filtered"] = filtered
+
+    return TemplateResponse(request, "estoque.html", context)
 
 def test(request):
     produto = get_object_or_404(models.Ingrediente, id=1)

@@ -1,6 +1,7 @@
 {% extends "base.html" %}{% load static %}
 
 {% block css %}
+
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css_datepicker/bootstrap-datepicker.min.css">
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css/bootstrap-select.min.css" />
   <link rel="stylesheet" type="text/css" href="/static/css/producao.css" />
@@ -15,15 +16,15 @@
 
 {% block content %}
   <div class="my_menu">
-    <form id="producao_form" action="./" onsubmit="return validateForm()" method="">
+    <form id="stock_form" action="./" onsubmit="return validateForm()" method="">
       {% csrf_token %}
       <div class="my_menu2">
         <div>
           <p>Tipo:</p>
           <div style="margin-bottom: 5px;">
-            <select id="product_type" class="selectpicker" title="Selecione o tipo" onchange="get_type(event)" name="tipo">
+            <select id="ingredient_type" class="selectpicker" title="Selecione o tipo" onchange="get_type(event)" name="tipo">
               {% for type in types %}
-              <option>{{ type.tipo }}</option>
+                <option>{{ type.tipo }}</option>
               {% endfor %}
             </select>
           </div>
@@ -31,7 +32,7 @@
         <div>
           <p>Produto:</p>
           <div style="margin-bottom: 5px;">
-            <select id="product_list" class="selectpicker" title="Selecione o produto" name="produto"> <!-- data-size="x"-->
+            <select id="ingredient_list" class="selectpicker" title="Selecione o produto" name="ingrediente"> <!-- data-size="x"-->
             </select>
           </div>
         </div>
@@ -104,12 +105,12 @@
   <script>
       $('.datepicker').datepicker();
       // creates an object with the types as keys and products as values
-      var product_list = {
+      var ingredient_list = {
           // takes keys and values from the
-          {% for tipo, query in products.items %}
+          {% for tipo, query in ingredients.items %}
               "{{ tipo }}": [
-                  {% for produto in query %}
-                      '{{ produto.nome }}',
+                  {% for ingredient in query %}
+                      '{{ ingredient.nome }}',
                   {% endfor %}
               ],
           {% endfor %}
@@ -117,10 +118,10 @@
 
       function get_type(event) {
           $(document).ready(function (){
-              $("#product_list").children().remove();
-              var type = product_list[$("#product_type").val()];
+              $("#ingredient_list").children().remove();
+              var type = ingredient_list[$("#ingredient_type").val()];
               for(var i = 0; i < type.length; i++){
-                  $("#product_list").append("<option>" + type[i] + "</option>");
+                  $("#ingredient_list").append("<option>" + type[i] + "</option>");
                   $('.selectpicker').selectpicker('refresh');
               }
           });
@@ -132,10 +133,10 @@
           var missing = false;
           if (check === "add"){
               var qtd = document.getElementById("quantidade").value;
-              var pdt = document.getElementById("product_list").value;
+              var pdt = document.getElementById("ingredient_list").value;
               var confirmProduct = confirm("Você deseja adicionar o produto abaixo?\nProduto: " + pdt + "\nQuantidade: " + qtd);
               if (confirmProduct){
-                  $("#producao_form").attr("method", "POST");
+                  $("#stock_form").attr("method", "POST");
                   return true;
               }
               else{
@@ -143,7 +144,7 @@
               }
           }
           else if (check === "filter"){
-              $("#producao_form").attr("method", "GET");
+              $("#stock_form").attr("method", "GET");
               return true;
           }
       }

@@ -31,7 +31,35 @@ class ProducaoData (forms.Form):
                 "Didn't input all fields for add."
                 )
         elif button == "filter":
-            if quantidade and (not produto):
+            if quantidade:
+                raise forms.ValidationError(
+                "Didn't input valid fields for filter."
+                )
+
+class EstoqueData (forms.Form):
+    tipo = forms.CharField(max_length=50)
+    ingrediente = forms.CharField(max_length=50, required=False)
+    quantidade = forms.IntegerField(required=False)
+    data_field = forms.DateField(required=False)
+    button = forms.CharField(max_length=10)
+    valor = forms.FloatField(required=False)
+
+    def clean(self):
+        cleaned_data = super(EstoqueData, self).clean()
+        tipo = cleaned_data.get("tipo")
+        ingrediente = cleaned_data.get("ingrediente")
+        quantidade = cleaned_data.get("quantidade")
+        button = cleaned_data.get("button")
+        data_field = forms.DateField("data_field")
+        valor = forms.FloatField("valor")
+
+        if button == "add":
+            if not (tipo and ingrediente and quantidade and valor):
+                raise forms.ValidationError(
+                "Didn't input all fields for add."
+                )
+        elif button == "filter":
+            if (quantidade or valor):
                 raise forms.ValidationError(
                 "Didn't input valid fields for filter."
                 )
