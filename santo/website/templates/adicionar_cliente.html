@@ -3,7 +3,7 @@
 {% block css %}
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css_datepicker/bootstrap-datepicker.min.css">
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css/bootstrap-select.min.css" />
-  <link rel="stylesheet" type="text/css" href="/static/css/producao.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/adicionar_cliente.css" />
 
 {% endblock %}
 
@@ -15,43 +15,39 @@
 
 {% block content %}
   <div class="my_menu">
-    <form id="producao_form" action="./" onsubmit="return validateForm()" method="">
-      {% csrf_token %}
+    <div id="adicionar_message"><h3>Adicionar novo cliente</h3></div>
+    <form id="novo_cliente_form" action="./" method="POST">
+    {% csrf_token %}
       <div class="my_menu2">
-        <div>
-          <p>Tipo:</p>
-          <div style="margin-bottom: 5px;">
-            <select id="product_type" class="selectpicker" title="Selecione o tipo" onchange="get_type(event)" name="tipo">
-              {% for type in types %}
-              <option>{{ type.tipo }}</option>
-              {% endfor %}
-            </select>
-          </div>
+        <div class="input-group">
+          <p>Nome:</p>
+          <input type="text" class="field_sizing form-control" placeholder="Nome" aria-describedby="basic-addon1" name="nome">
         </div>
-        <div>
-          <p>Produto:</p>
-          <div style="margin-bottom: 5px;">
-            <select id="product_list" class="selectpicker" title="Selecione o produto" name="produto"> <!-- data-size="x"-->
-            </select>
-          </div>
+        <div class="input-group">
+          <p>Sobrenome:</p>
+          <input type="text" class="field_sizing form-control" placeholder="Sobrenome" aria-describedby="basic-addon1" name="sobrenome">
         </div>
-        <div>
-          <p>Quantidade:</p>
-          <div>
-            <div style="margin-bottom: 5px;" class="last_production_line input-group">
-              <input id="quantidade" type="text" class="field_sizing form-control" placeholder="Quantidade" aria-describedby="basic-addon1" name="quantidade">
-              <button type="submit" class="btn btn-danger" name="button" value="add">Adicionar</button>
-            </div>
-          </div>
+      </div>
+      <div class="my_menu2">
+        <div class="input-group">
+          <p>Telefone:</p>
+          <input type="text" class="field_sizing form-control" placeholder="Telefone" aria-describedby="basic-addon1" name="telefone">
         </div>
-        <div>
-          <p>Filtro:</p>
-          <div>
-            <div style="width: 200px; margin-bottom: 5px;" class="last_production_line input-group">
-              <input id="date_field" class="field_sizing form-control datepicker" data-date-format="mm/dd/yyyy" placeholder="Data" data-date-autoclose=true data-date-today-highlight=true name="data_field">
-              <button type="submit" class="btn btn-primary" name="button" value="filter">Filtrar</button>
-            </div>
-          </div>
+        <div class="input-group">
+          <p>CEP:</p>
+          <input type="text" class="field_sizing form-control" placeholder="CEP" aria-describedby="basic-addon1" name="cep">
+        </div>
+      </div>
+      <div class="my_menu2">
+        <div class="long-field input-group">
+          <p>Endereço:</p>
+          <input type="text" class="field_sizing form-control" placeholder="Endereço" aria-describedby="basic-addon1" name="referencia">
+        </div>
+      </div>
+      <div class="my_menu2">
+        <div class="long-field input-group">
+          <p>Referência:</p>
+          <input type="text" class="field_sizing form-control" placeholder="Referência" aria-describedby="basic-addon1" name="referencia">
         </div>
       </div>
     </form>

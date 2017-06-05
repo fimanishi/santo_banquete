@@ -37,7 +37,7 @@ def authenticated(request):
 @login_required
 def pedidos(request):
     context = {}
-    return TemplateResponse(request, "pedidos.html", context)
+    return TemplateResponse(request, "adicionar_cliente.html", context)
 
 @login_required
 def producao(request):
@@ -89,7 +89,7 @@ def producao(request):
 
 
     # gets all the distinct types of food categories
-    types = models.Produto.objects.filter(~Q(tipo="bebida")).distinct("tipo")
+    types = models.Produto.objects.filter(~Q(tipo="bebida")).distinct("tipo").order_by("tipo")
     # gets all products
     products = models.Produto.objects.all()
     # creates a dictionary to store all categories and products
@@ -133,9 +133,9 @@ def estoque(request):
         if form.is_valid():
             if form.cleaned_data["data_field"]:
                 if form.cleaned_data["ingrediente"]:
-                    filtered = models.Ingrediente.objects.filter(data__gte = form.cleaned_data["data_field"], nome = form.cleaned_data["ingrediente"])
+                    filtered = models.Ingrediente.objects.filter(ultima_compra__gte = form.cleaned_data["data_field"], nome = form.cleaned_data["ingrediente"])
                 elif form.cleaned_data["tipo"]:
-                    filtered = models.Ingrediente.objects.filter(data__gte = form.cleaned_data["data_field"], tipo = form.cleaned_data["tipo"])
+                    filtered = models.Ingrediente.objects.filter(ultima_compra__gte = form.cleaned_data["data_field"], tipo = form.cleaned_data["tipo"])
             elif not form.cleaned_data["data_field"]:
                 if form.cleaned_data["ingrediente"]:
                     filtered = models.Ingrediente.objects.filter(nome = form.cleaned_data["ingrediente"])
@@ -149,8 +149,9 @@ def estoque(request):
 
 
 
+
     # gets all the distinct types of ingredient categories
-    types = models.Ingrediente.objects.all().distinct("tipo")
+    types = models.Ingrediente.objects.all().distinct("tipo").order_by("tipo")
     # gets all products
     ingredients = models.Ingrediente.objects.all()
     # creates a dictionary to store all categories and products
@@ -159,7 +160,6 @@ def estoque(request):
     for i in ingredients:
         for j in types:
             context['ingredients'][j.tipo] = models.Ingrediente.objects.filter(tipo=j.tipo)
-    print(context["ingredients"])
     # adds the categories
     context["types"] = types
     context["success"] = success

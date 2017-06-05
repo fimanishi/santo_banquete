@@ -1,0 +1,19 @@
+#adicionar_message {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.my_menu2 .input-group .field_sizing.form-control{
+    width: 120px;
+}
+
+.my_menu2 {
+    width: 300px;
+    margin: 0 auto 20px auto;
+    display: flex;
+    justify-content: space-between;
+}
+
+.my_menu2 .long-field.input-group .field_sizing.form-control{
+    width: 300px;
+}

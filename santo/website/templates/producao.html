@@ -118,7 +118,7 @@
       function get_type(event) {
           $(document).ready(function (){
               $("#product_list").children().remove();
-              var type = product_list[$("#product_type").val()];
+              var type = product_list[$("#product_type").val()].sort();
               for(var i = 0; i < type.length; i++){
                   $("#product_list").append("<option>" + type[i] + "</option>");
                   $('.selectpicker').selectpicker('refresh');

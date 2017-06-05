@@ -22,6 +22,7 @@ class Ingrediente(models.Model):
     valor_comprado = models.FloatField()
     preco_medio = models.FloatField()
 
+
 class Quantidade(models.Model):
     class Meta:
         db_table = "quantidade"
@@ -31,6 +32,7 @@ class Quantidade(models.Model):
     quantidade_unitaria = models.FloatField()
     rendimento = models.FloatField()
     obs = models.CharField(max_length = 30)
+
 
 class Producao(models.Model):
     class Meta:

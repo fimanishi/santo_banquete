@@ -1,0 +1,145 @@
+{
+  "name": "autonumeric",
+  "version": "2.0.12",
+  "description": "autoNumeric is a library that provides live *as-you-type* formatting for international numbers and currencies. It supports most International numeric formats and currencies including those used in Europe, Asia, and North and South America.",
+  "main": "src/autoNumeric.js",
+  "readmeFilename": "README.MD",
+  "keywords": [
+    "currency",
+    "money",
+    "Euro",
+    "Dollar",
+    "Pound",
+    "number",
+    "numeric",
+    "format",
+    "jquery",
+    "plugin",
+    "form",
+    "input",
+    "mask",
+    "as-you-type",
+    "live"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Robert Knothe",
+    "email": "bob@decorplanit.com"
+  },
+  "contributors": [
+    {
+      "name": "Alexandre Bonneau",
+      "email": "alexandre.bonneau@linuxfr.eu"
+    },
+    {
+      "name": "Sokolov Yura"
+    },
+    {
+      "name": "Carlos Gonzales"
+    },
+    {
+      "name": "Ney Estrabelli"
+    },
+    {
+      "name": "Carlos Ghan"
+    },
+    {
+      "name": "Boris Cherny"
+    },
+    {
+      "name": "Maxwell Barvian"
+    },
+    {
+      "name": "Sasha Koss"
+    },
+    {
+      "name": "Mic Biert"
+    },
+    {
+      "name": "Peter Boccia"
+    },
+    {
+      "name": "Bruno Batista"
+    },
+    {
+      "name": "Jarin Udom"
+    },
+    {
+      "name": "Raymond Lehnhoff"
+    },
+    {
+      "name": "Cory Foy"
+    }
+  ],
+  "homepage": "http://www.decorplanit.com/plugin/",
+  "dependencies": {
+    "jquery": ">=1.7"
+  },
+  "devDependencies": {
+    "babel-core": "latest",
+    "babel-eslint": "latest",
+    "babel-istanbul": "latest",
+    "babel-istanbul-loader": "latest",
+    "babel-loader": "latest",
+    "babel-plugin-add-module-exports": "latest",
+    "babel-preset-latest": "latest",
+    "babel-register": "^6.22.0",
+    "coveralls": "^2.11.15",
+    "eslint": "latest",
+    "imports-loader": "latest",
+    "jasmine-core": "latest",
+    "karma": "latest",
+    "karma-chrome-launcher": "latest",
+    "karma-coverage": "latest",
+    "karma-firefox-launcher": "latest",
+    "karma-jasmine": "latest",
+    "karma-phantomjs-launcher": "latest",
+    "karma-sourcemap-loader": "latest",
+    "karma-webpack": "^2.0.1",
+    "loader-utils": "latest",
+    "phantomjs-prebuilt": "latest",
+    "rimraf": "latest",
+    "uglify-js": "latest",
+    "wdio-jasmine-framework": "^0.2.19",
+    "wdio-selenium-standalone-service": "^0.0.7",
+    "wdio-spec-reporter": "^0.0.5",
+    "wdio-static-server-service": "^1.0.1",
+    "webdriverio": "^4.6.1",
+    "webpack": "latest"
+  },
+  "scripts": {
+    "postinstall": "node yarnfix.js",
+    "build:dev": "webpack src/autoNumeric.js dist/autoNumeric.js --config config/webpack.config.dev.js",
+    "build:prd": "webpack src/autoNumeric.js dist/autoNumeric.min.js --config config/webpack.config.prd.js",
+    "build": "yarn clean:build && yarn build:dev && yarn build:prd",
+    "clean:build": "rimraf dist",
+    "clean:coverage": "rimraf test/unit/coverage",
+    "clean:e2e": "rimraf test/e2e/reports/* && rimraf test/e2e/screenshots/*",
+    "clean:log": "rimraf npm-debug.log selenium-debug.log test/e2e/selenium.log yarn-error.log",
+    "clean": "yarn clean:build && yarn clean:coverage && yarn clean:log && yarn clean:e2e",
+    "lint": "eslint --ext .js src test/unit test/e2e",
+    "test": "yarn test:unit && yarn test:e2e",
+    "test:unit": "QT_QPA_PLATFORM='' ./node_modules/karma/bin/karma start karma.conf.js --single-run",
+    "test:unitp": "QT_QPA_PLATFORM='' ./node_modules/karma/bin/karma start karma.conf.js --single-run --browsers PhantomJS",
+    "test:unitf": "QT_QPA_PLATFORM='' ./node_modules/karma/bin/karma start karma.conf.js --single-run --browsers Firefox",
+    "test:unitc": "QT_QPA_PLATFORM='' ./node_modules/karma/bin/karma start karma.conf.js --single-run --browsers Chrome",
+    "test:e2e": "wdio test/e2e/wdio.local.conf.js",
+    "travis:test": "yarn test:unitp",
+    "travis:lint": "yarn lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/autoNumeric/autoNumeric.git"
+  },
+  "bugs": {
+    "url": "https://github.com/autoNumeric/autoNumeric/issues"
+  },
+  "autoupdate": {
+    "source": "git",
+    "target": "git://github.com/autoNumeric/autoNumeric.git",
+    "basePath": "",
+    "files": [
+      "src/autoNumeric.js"
+    ]
+  }
+}
