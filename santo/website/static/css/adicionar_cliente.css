@@ -17,3 +17,7 @@
 .my_menu2 .long-field.input-group .field_sizing.form-control{
     width: 300px;
 }
+
+.my_menu2 .radio_menu.input-group{
+    width: 120px;
+}

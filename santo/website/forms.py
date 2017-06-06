@@ -69,5 +69,10 @@ class EstoqueData (forms.Form):
 
 
 class ClienteData (forms.Form):
-    nome = forms.CharField(max_length=50)
-    sobrenome = forms.CharField(max_length=50)
+    nome = forms.CharField(max_length=60)
+    telefone = forms.CharField(max_length=20, required=False)
+    tipo = forms.CharField(max_length=2)
+    endereco = forms.CharField(max_length=50, required=False)
+    bairro = forms.CharField(max_length=30, required=False)
+    cidade = forms.CharField(max_length=30)
+    referencia = forms.CharField(max_length=50)

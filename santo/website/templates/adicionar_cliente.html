@@ -19,13 +19,15 @@
     <form id="novo_cliente_form" action="./" method="POST">
     {% csrf_token %}
       <div class="my_menu2">
-        <div class="input-group">
-          <p>Nome:</p>
-          <input type="text" class="field_sizing form-control" placeholder="Nome" aria-describedby="basic-addon1" name="nome">
+        <div class="long-field input-group">
+          <p>Nome Completo:</p>
+          <input type="text" class="field_sizing form-control" placeholder="Nome Completo" aria-describedby="basic-addon1" name="nome">
         </div>
-        <div class="input-group">
-          <p>Sobrenome:</p>
-          <input type="text" class="field_sizing form-control" placeholder="Sobrenome" aria-describedby="basic-addon1" name="sobrenome">
+      </div>
+      <div class="my_menu2">
+        <div class="long-field input-group">
+          <p>Referência:</p>
+          <input type="text" class="field_sizing form-control" placeholder="Referência" aria-describedby="basic-addon1" name="referencia">
         </div>
       </div>
       <div class="my_menu2">
@@ -33,21 +35,74 @@
           <p>Telefone:</p>
           <input type="text" class="field_sizing form-control" placeholder="Telefone" aria-describedby="basic-addon1" name="telefone">
         </div>
+        <div class="radio_menu input-group">
+          <p style="margin-bottom: 15px;">Tipo:</p>
+          <label class="radio-inline"><input type="radio" name="pessoa_tipo">PF</label>
+          <label class="radio-inline"><input type="radio" name="pessoa_tipo">PJ</label>
+        </div>
+      </div>
+      <div class="my_menu2">
+        <div class="dropdown_selection">
+          <p>Bairro:</p>
+          <select id="bairro" class="selectpicker" title="Bairro" name="bairro" data-live-search="true" data-width="120px" data-size="5">
+            <option>Outro</option>
+            <option>Acampamento</option>
+            <option>Adélia Giuberti</option>
+            <option>Aeroporto</option>
+            <option>Alto Vila Nova</option>
+            <option>Aparecida</option>
+            <option>Ayrton Senna</option>
+            <option>Barbados</option>
+            <option>Beira Rio</option>
+            <option>Bela Vista</option>
+            <option>Carlos Germano Naumann</option>
+            <option>Centro</option>
+            <option>Colatina Velha</option>
+            <option>Columbia</option>
+            <option>Córrego da Ponte</option>
+            <option>Córrego do Ouro</option>
+            <option>David Torezani</option>
+            <option>Duas Vendinhas</option>
+            <option>Esplanada</option>
+            <option>Fazenda Vitali</option>
+            <option>Honório Fraga</option>
+            <option>IBC</option>
+            <option>Jardim Planalto</option>
+            <option>José de Anchieta</option>
+            <option>Lacê</option>
+            <option>Ladeira Cristo Rei</option>
+            <option>Maria das Graças</option>
+            <option>Maria Ismênia</option>
+            <option>Mario Giurizatto</option>
+            <option>Moacir Brotas</option>
+            <option>Noemia Vitali</option>
+            <option>Olívio Zanotelli</option>
+            <option>Operário</option>
+            <option>Recanto dos Pássaros</option>
+            <option>Residencial Nobre</option>
+            <option>Riviera</option>
+            <option>Santa Cecília</option>
+            <option>Santa Mônica</option>
+            <option>Santa Terezinha</option>
+            <option>Santo Antonio</option>
+            <option>São Marcos</option>
+            <option>São Silvano</option>
+            <option>São Vicente</option>
+            <option>São Zenon</option>
+            <option>Vila Lenira</option>
+            <option>Vila Nova</option>
+            <option>Vila Verde</option>
+          </select>
+        </div>
         <div class="input-group">
-          <p>CEP:</p>
-          <input type="text" class="field_sizing form-control" placeholder="CEP" aria-describedby="basic-addon1" name="cep">
+          <p>Cidade:</p>
+          <input type="text" class="field_sizing form-control" placeholder="Cidade" value="Colatina" aria-describedby="basic-addon1" name="cidade">
         </div>
       </div>
       <div class="my_menu2">
         <div class="long-field input-group">
           <p>Endereço:</p>
-          <input type="text" class="field_sizing form-control" placeholder="Endereço" aria-describedby="basic-addon1" name="referencia">
-        </div>
-      </div>
-      <div class="my_menu2">
-        <div class="long-field input-group">
-          <p>Referência:</p>
-          <input type="text" class="field_sizing form-control" placeholder="Referência" aria-describedby="basic-addon1" name="referencia">
+          <input type="text" class="field_sizing form-control" placeholder="Endereço" aria-describedby="basic-addon1" name="endereco">
         </div>
       </div>
     </form>
@@ -153,7 +208,6 @@
 {#                  });#}
           })
       }
-
 
 
 
