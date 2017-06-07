@@ -107,7 +107,38 @@
       {% endfor %}
     };
 
+      function get_type(event) {
+        $(document).ready(function (){
+          $("#product_list").children().remove();
+          var type = product_list[$("#product_type").val()].sort();
+          for(var i = 0; i < type.length; i++){
+            $("#product_list").append("<option>" + type[i] + "</option>");
+            $('.selectpicker').selectpicker('refresh');
+          }
+        });
+      }
 
+      function validateForm() {
+          var check = document.activeElement.value;
+          // var list = ["Tipo", "Produto", "Quantidade", "Data"];
+          var missing = false;
+          if (check === "add"){
+              var qtd = document.getElementById("quantidade").value;
+              var pdt = document.getElementById("product_list").value;
+              var confirmProduct = confirm("Você deseja adicionar o produto abaixo?\nProduto: " + pdt + "\nQuantidade: " + qtd);
+              if (confirmProduct){
+                  $("#producao_form").attr("method", "POST");
+                  return true;
+              }
+              else{
+                  return false;
+              }
+          }
+          else if (check === "filter"){
+              $("#producao_form").attr("method", "GET");
+              return true;
+          }
+      }
       function removeItem() {
           $(document).ready(function (){
               var toDelete = document.activeElement.parentNode.parentNode.parentNode.parentNode.parentNode;

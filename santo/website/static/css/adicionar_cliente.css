@@ -1,6 +1,6 @@
 #adicionar_message {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 .my_menu2 .input-group .field_sizing.form-control{
@@ -9,7 +9,7 @@
 
 .my_menu2 {
     width: 300px;
-    margin: 0 auto 20px auto;
+    margin: 0 auto 10px auto;
     display: flex;
     justify-content: space-between;
 }
@@ -20,4 +20,25 @@
 
 .my_menu2 .radio_menu.input-group{
     width: 120px;
+}
+
+.my_menu2 .alert {
+    width: 300px;
+    text-align: center;
+}
+
+.my_menu2 a{
+    text-decoration: none;
+    color: white;
+    width: 300px;
+}
+
+.my_menu2 button{
+    width: 300px;
+}
+
+.my_menu2 a:hover{
+    color: white;
+    cursor: pointer;
+    text-decoration: none;
 }

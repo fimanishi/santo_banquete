@@ -2,8 +2,8 @@ from django.template.response import TemplateResponse
 import website.forms
 from django import forms
 from django import http
-from django.core.mail import send_mail
-from django.core.mail import EmailMessage
+# from django.core.mail import send_mail
+# from django.core.mail import EmailMessage
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.contrib.auth import logout, login
@@ -29,15 +29,64 @@ def index(request):
     context = {}
     return TemplateResponse(request, "index.html", context)
 
+
 @login_required
 def authenticated(request):
     context = {}
     return TemplateResponse(request, "authenticated.html", context)
 
+
+# page to add a new client. does the verification of the fields and adds to the database
+# required inputs: nome completo and cidade
+@login_required
+def adicionar_cliente(request):
+    success = 1
+    if request.method == "POST":
+        form = website.forms.ClienteData(request.POST or None)
+        if form.is_valid():
+            exist_check = models.Cliente.objects.filter(nome=form.cleaned_data["nome"].lower())
+            if exist_check:
+                for each in exist_check:
+                    if each.telefone == form.cleaned_data["telefone"]:
+                        success = 4
+                    else:
+                        models.Cliente.objects.create(nome=form.cleaned_data["nome"].lower(),
+                                                      telefone=form.cleaned_data["telefone"],
+                                                      tipo=form.cleaned_data["tipo"],
+                                                      endereco=form.cleaned_data["endereco"],
+                                                      bairro=form.cleaned_data["bairro"],
+                                                      cidade=form.cleaned_data["cidade"],
+                                                      referencia=form.cleaned_data["referencia"])
+                        success = 2
+            else:
+                models.Cliente.objects.create(nome=form.cleaned_data["nome"].lower(), telefone=form.cleaned_data["telefone"],
+                                              tipo=form.cleaned_data["tipo"], endereco=form.cleaned_data["endereco"],
+                                              bairro=form.cleaned_data["bairro"], cidade=form.cleaned_data["cidade"],
+                                              referencia=form.cleaned_data["referencia"])
+                success = 2
+        else:
+            success = 3
+    context = {"success": success}
+    return TemplateResponse(request, "adicionar_cliente.html", context)
+
+
 @login_required
 def pedidos(request):
+    success = 1
+    filtered = []
+    if request.method == "GET":
+        pass
     context = {}
-    return TemplateResponse(request, "adicionar_cliente.html", context)
+    request.session['cart'] = []
+    del request.session['cart']
+    return TemplateResponse(request, "pedidos.html", context)
+
+
+@login_required
+def novo_pedido(request):
+    context = {}
+    return TemplateResponse(request, "novo_pedido.html", context)
+
 
 @login_required
 def producao(request):
@@ -84,10 +133,6 @@ def producao(request):
                 success = 4
             else:
                 success = 5
-
-
-
-
     # gets all the distinct types of food categories
     types = models.Produto.objects.filter(~Q(tipo="bebida")).distinct("tipo").order_by("tipo")
     # gets all products
@@ -104,6 +149,7 @@ def producao(request):
     context["filtered"] = filtered
 
     return TemplateResponse(request, "producao.html", context)
+
 
 @login_required
 def estoque(request):
@@ -145,11 +191,6 @@ def estoque(request):
                 success = 4
             else:
                 success = 5
-
-
-
-
-
     # gets all the distinct types of ingredient categories
     types = models.Ingrediente.objects.all().distinct("tipo").order_by("tipo")
     # gets all products
@@ -166,6 +207,7 @@ def estoque(request):
     context["filtered"] = filtered
 
     return TemplateResponse(request, "estoque.html", context)
+
 
 def test(request):
     produto = get_object_or_404(models.Ingrediente, id=1)

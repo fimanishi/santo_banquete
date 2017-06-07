@@ -1,7 +1,6 @@
 {% extends "base.html" %}{% load static %}
 
 {% block css %}
-  <link rel="stylesheet" type="text/css" href="/static/css/dist/css_datepicker/bootstrap-datepicker.min.css">
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css/bootstrap-select.min.css" />
   <link rel="stylesheet" type="text/css" href="/static/css/adicionar_cliente.css" />
 
@@ -16,6 +15,7 @@
 {% block content %}
   <div class="my_menu">
     <div id="adicionar_message"><h3>Adicionar novo cliente</h3></div>
+    {% if success != 2 %}
     <form id="novo_cliente_form" action="./" method="POST">
     {% csrf_token %}
       <div class="my_menu2">
@@ -33,12 +33,12 @@
       <div class="my_menu2">
         <div class="input-group">
           <p>Telefone:</p>
-          <input type="text" class="field_sizing form-control" placeholder="Telefone" aria-describedby="basic-addon1" name="telefone">
+          <input style="width:140px;" type="text" class="field_sizing form-control" placeholder="Telefone" aria-describedby="basic-addon1" name="telefone">
         </div>
         <div class="radio_menu input-group">
           <p style="margin-bottom: 15px;">Tipo:</p>
-          <label class="radio-inline"><input type="radio" name="pessoa_tipo">PF</label>
-          <label class="radio-inline"><input type="radio" name="pessoa_tipo">PJ</label>
+          <label class="radio-inline"><input type="radio" name="tipo" value="PF">PF</label>
+          <label class="radio-inline"><input type="radio" name="tipo" value="PJ">PJ</label>
         </div>
       </div>
       <div class="my_menu2">
@@ -105,112 +105,36 @@
           <input type="text" class="field_sizing form-control" placeholder="Endereço" aria-describedby="basic-addon1" name="endereco">
         </div>
       </div>
+      <div class="my_menu2">
+        <button style="margin: 5px 0 5px 0;" type="submit" class="btn btn-danger btn-block" name="button" value="add">Adicionar novo cliente</button>
+      </div>
     </form>
+    {% endif %}
   </div>
   {% if success == 2 %}
-  <div class="message">
-    <div class="alert alert-success" role="alert">Produto adicionado com sucesso</div>
-  </div>
+    <div class="my_menu2">
+      <div style="margin: 10px 0 10px 0;" class="alert alert-success" role="alert">Cliente adicionado com sucesso</div>
+    </div>
+    <div class="my_menu2">
+      <a href="/novo_pedido"><button style="margin: 5px 0 5px 0;" class="btn btn-danger btn-block">Criar pedido</button></a>
+    </div>
+    <div class="my_menu2">
+      <a href="/adicionar_cliente"><button style="margin: 5px 0 5px 0;" class="btn btn-primary btn-block">Adicionar outro novo cliente</button></a>
+    </div>
   {% elif success == 3 %}
-  <div class="message">
-    <div class="alert alert-danger" role="alert">Selecione tipo, produto e quantidade</div>
-  </div>
+    <div class="my_menu2">
+      <div class="alert alert-danger">Insira nome completo e cidade</div>
+    </div>
   {% elif success == 4 %}
-  <div>
-    <form name="toDelete" method="POST" onsubmit="return false;">
-      {% for i in filtered %}
-          <div class="filtered">
-            <div class="alert alert-info" role="alert">
-              <div style="display: flex;">
-                <div class="listing">
-                  <p><strong>Produto:</strong></p>
-                  <p>{{ i.produto.nome }}</p>
-                </div>
-                <div class="listing">
-                  <p><strong>Quantidade:</strong></p>
-                  <p>{{ i.quantidade }}</p>
-                </div>
-                <div class="listing">
-                  <p><strong>Data:</strong></p>
-                  <p>{{ i.data}}<button type="submit" class="delete_button glyphicon glyphicon-remove" aria-hidden="true" value={{ i.id }} onclick="removeItem(event)"></button></p>
-                </div>
-              </div>
-            </div>
-          </div>
-      {% endfor %}
-    </form>
-  </div>
-  {% elif success == 5 %}
-    <div class="message">
-        <div class="alert alert-danger" role="alert">Nenhum produto encontrado</div>
+    <div class="my_menu2">
+      <div class="alert alert-danger">Cliente já cadastrado</div>
     </div>
   {% endif %}
-
 {% endblock %}
 
 
 {% block script %}
   <script src="/static/js/js/bootstrap-select.min.js"></script>
-  <script src="/static/js/js_datepicker/bootstrap-datepicker.min.js"></script>
   <script>
-      $('.datepicker').datepicker();
-      // creates an object with the types as keys and products as values
-      var product_list = {
-          // takes keys and values from the
-          {% for tipo, query in products.items %}
-              "{{ tipo }}": [
-                  {% for produto in query %}
-                      '{{ produto.nome }}',
-                  {% endfor %}
-              ],
-          {% endfor %}
-      };
-
-      function get_type(event) {
-          $(document).ready(function (){
-              $("#product_list").children().remove();
-              var type = product_list[$("#product_type").val()].sort();
-              for(var i = 0; i < type.length; i++){
-                  $("#product_list").append("<option>" + type[i] + "</option>");
-                  $('.selectpicker').selectpicker('refresh');
-              }
-          });
-      }
-
-      function validateForm() {
-          var check = document.activeElement.value;
-          // var list = ["Tipo", "Produto", "Quantidade", "Data"];
-          var missing = false;
-          if (check === "add"){
-              var qtd = document.getElementById("quantidade").value;
-              var pdt = document.getElementById("product_list").value;
-              var confirmProduct = confirm("Você deseja adicionar o produto abaixo?\nProduto: " + pdt + "\nQuantidade: " + qtd);
-              if (confirmProduct){
-                  $("#producao_form").attr("method", "POST");
-                  return true;
-              }
-              else{
-                  return false;
-              }
-          }
-          else if (check === "filter"){
-              $("#producao_form").attr("method", "GET");
-              return true;
-          }
-      }
-      function removeItem() {
-          $(document).ready(function (){
-              var toDelete = document.activeElement.parentNode.parentNode.parentNode.parentNode.parentNode;
-              $(toDelete).remove();
-{#              axios.post('/remove/item/?id=123')#}
-{#                  .then(function (response) {#}
-{#                     console.log(response.data);#}
-{#                  });#}
-          })
-      }
-
-
-
-
   </script>
 {% endblock %}

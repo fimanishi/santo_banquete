@@ -1,10 +1,5 @@
 from django import forms
-
-# class ClassForm (forms.Form):
-#     your_name = forms.CharField(label="Your Name", max_length=100, initial="Name")
-#     your_email = forms.EmailField(label="Your Email", max_length=100)
-#     your_question = forms.CharField(label="Your Question", max_length=1000)
-#     your_image = forms.FileField(label="Your Image")
+from localflavor.br.forms import BRPhoneNumberField
 
 
 class UserForm (forms.Form):
@@ -71,8 +66,8 @@ class EstoqueData (forms.Form):
 class ClienteData (forms.Form):
     nome = forms.CharField(max_length=60)
     telefone = forms.CharField(max_length=20, required=False)
-    tipo = forms.CharField(max_length=2)
+    tipo = forms.CharField(max_length=2, required=False)
     endereco = forms.CharField(max_length=50, required=False)
     bairro = forms.CharField(max_length=30, required=False)
     cidade = forms.CharField(max_length=30)
-    referencia = forms.CharField(max_length=50)
+    referencia = forms.CharField(max_length=50, required=False)
