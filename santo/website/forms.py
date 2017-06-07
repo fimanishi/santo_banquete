@@ -71,3 +71,11 @@ class ClienteData (forms.Form):
     bairro = forms.CharField(max_length=30, required=False)
     cidade = forms.CharField(max_length=30)
     referencia = forms.CharField(max_length=50, required=False)
+
+
+class ClienteSearch (forms.Form):
+    nome = forms.CharField(max_length=60, required=False)
+    telefone = forms.CharField(max_length=20, required=False)
+
+    def clean(self):
+        cleaned_data = super(ClienteSearch, self).clean()

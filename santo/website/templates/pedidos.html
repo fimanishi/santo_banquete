@@ -18,7 +18,7 @@
     <div id="adicionar_message"><h3>Pedidos</h3></div>
   </div>
   <div class="my_menu2">
-    <a href="/novo_pedido"><button style="margin: 5px 0 5px 0;" class="btn btn-danger btn-block">Criar pedido</button></a>
+    <a href="/escolher_cliente"><button style="margin: 5px 0 5px 0;" class="btn btn-danger btn-block">Criar pedido</button></a>
   </div>
   <form action="./" method="GET">
     <div class="my_menu2">
@@ -48,6 +48,13 @@
       <div style="display: flex; justify-content: space-between;" class="input-group">
         <label class="radio-inline"><input type="radio" name="status" value="True">Entregue</label>
         <label class="radio-inline"><input type="radio" name="status" value="False">Não Entregue</label>
+      </div>
+    </div>
+    <div class="my_menu2">
+      <p>Pagamento:</p>
+      <div style="display: flex; justify-content: space-between;" class="input-group">
+        <label class="radio-inline"><input type="radio" name="pago" value="True">Pago</label>
+        <label class="radio-inline"><input type="radio" name="pago" value="False">Não Pago</label>
       </div>
     </div>
   </form>

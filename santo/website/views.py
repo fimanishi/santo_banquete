@@ -89,6 +89,18 @@ def novo_pedido(request):
 
 
 @login_required
+def escolher_cliente(request):
+    if request.method == "GET":
+        form = website.forms.ClienteSearch(request.GET or None)
+        if form.is_valid():
+            if form.cleaned_data["nome"] and form.cleaned_data["telefone"]:
+                filtered = models.Cliente.objects.filter(nome__icontains=form.cleaned_data["nome"])
+
+    context = {}
+    return TemplateResponse(request, "escolher_cliente.html", context)
+
+
+@login_required
 def producao(request):
     # handling forms
     success = 1
