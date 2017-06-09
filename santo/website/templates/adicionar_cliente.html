@@ -33,7 +33,7 @@
       <div class="my_menu2">
         <div class="input-group">
           <p>Telefone:</p>
-          <input style="width:140px;" type="text" class="field_sizing form-control" placeholder="Telefone" aria-describedby="basic-addon1" name="telefone">
+          <input id="telefone" style="width:140px;" type="text" class="field_sizing form-control" placeholder="Telefone" aria-describedby="basic-addon1" name="telefone" onkeypress='return event.charCode >= 48 && event.charCode <= 57' onchange="brPhoneStyle(event)">
         </div>
         <div class="radio_menu input-group">
           <p style="margin-bottom: 15px;">Tipo:</p>
@@ -116,7 +116,11 @@
       <div style="margin: 10px 0 10px 0;" class="alert alert-success" role="alert">Cliente adicionado com sucesso</div>
     </div>
     <div class="my_menu2">
-      <a href="/novo_pedido"><button style="margin: 5px 0 5px 0;" class="btn btn-danger btn-block">Criar pedido</button></a>
+      <form action="/novo_pedido/" method="POST">
+        {% csrf_token %}
+        <button type="submit" style="margin: 5px 0 5px 0;" class="btn btn-danger btn-block">Criar pedido</button>
+        <input type="hidden" name="cliente" value={{ id | default:"" }}>
+      </form>
     </div>
     <div class="my_menu2">
       <a href="/adicionar_cliente"><button style="margin: 5px 0 5px 0;" class="btn btn-primary btn-block">Adicionar outro novo cliente</button></a>
@@ -136,5 +140,17 @@
 {% block script %}
   <script src="/static/js/js/bootstrap-select.min.js"></script>
   <script>
+    function brPhoneStyle(event){
+      var input = document.getElementById("telefone").value.replace(/\D/g, "");
+      console.log(input);
+      if(input.length === 10){
+        document.getElementById("telefone").value = "(" + input.slice(0,2) + ")" + input.slice(2,6) + "-" + input.slice(-4);
+      }
+      else if(input.length === 11){
+        document.getElementById("telefone").value = "(" + input.slice(0,2) + ")" + input.slice(2,7) + "-" + input.slice(-4);
+      }else{
+        document.getElementById("telefone").value = "";
+      }
+    }
   </script>
 {% endblock %}

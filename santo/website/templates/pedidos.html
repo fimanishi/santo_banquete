@@ -36,7 +36,7 @@
     <div class="my_menu2">
       <div class="input-group">
         <p>Telefone:</p>
-        <input style="width:140px;" type="text" class="field_sizing form-control" placeholder="Telefone" aria-describedby="basic-addon1" name="telefone">
+        <input id="telefone" style="width:140px;" type="text" class="field_sizing form-control" placeholder="Telefone" aria-describedby="basic-addon1" name="telefone" onkeypress='return event.charCode >= 48 && event.charCode <= 57' onchange="brPhoneStyle(event)">
       </div>
       <div style="width:120px;">
         <p>Data:</p>
@@ -114,17 +114,29 @@
       {% endfor %}
     };
 
+    function brPhoneStyle(event){
+      var input = document.getElementById("telefone").value.replace(/\D/g, "");
+      console.log(input);
+      if(input.length === 10){
+        document.getElementById("telefone").value = "(" + input.slice(0,2) + ")" + input.slice(2,6) + "-" + input.slice(-4);
+      }
+      else if(input.length === 11){
+        document.getElementById("telefone").value = "(" + input.slice(0,2) + ")" + input.slice(2,7) + "-" + input.slice(-4);
+      }else{
+        document.getElementById("telefone").value = "";
+      }
+    }
 
-      function removeItem() {
-          $(document).ready(function (){
-              var toDelete = document.activeElement.parentNode.parentNode.parentNode.parentNode.parentNode;
-              $(toDelete).remove();
+    function removeItem() {
+      $(document).ready(function (){
+        var toDelete = document.activeElement.parentNode.parentNode.parentNode.parentNode.parentNode;
+          $(toDelete).remove();
 {#              axios.post('/remove/item/?id=123')#}
 {#                  .then(function (response) {#}
 {#                     console.log(response.data);#}
 {#                  });#}
-          })
-      }
+        });
+    }
 
 
 

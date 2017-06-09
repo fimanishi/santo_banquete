@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from datetime import date
 from django.core.exceptions import ObjectDoesNotExist
+import re
 
 # Create your views here.
 
@@ -41,6 +42,7 @@ def authenticated(request):
 @login_required
 def adicionar_cliente(request):
     success = 1
+    client_id = ""
     if request.method == "POST":
         form = website.forms.ClienteData(request.POST or None)
         if form.is_valid():
@@ -53,20 +55,30 @@ def adicionar_cliente(request):
                         models.Cliente.objects.create(nome=form.cleaned_data["nome"].lower(),
                                                       telefone=form.cleaned_data["telefone"],
                                                       tipo=form.cleaned_data["tipo"],
-                                                      endereco=form.cleaned_data["endereco"],
+                                                      endereco=form.cleaned_data["endereco"].lower(),
                                                       bairro=form.cleaned_data["bairro"],
-                                                      cidade=form.cleaned_data["cidade"],
-                                                      referencia=form.cleaned_data["referencia"])
+                                                      cidade=form.cleaned_data["cidade"].lower(),
+                                                      referencia=form.cleaned_data["referencia"].lower())
                         success = 2
+                        client_id = models.Cliente.objects.latest()
             else:
-                models.Cliente.objects.create(nome=form.cleaned_data["nome"].lower(), telefone=form.cleaned_data["telefone"],
-                                              tipo=form.cleaned_data["tipo"], endereco=form.cleaned_data["endereco"],
-                                              bairro=form.cleaned_data["bairro"], cidade=form.cleaned_data["cidade"],
-                                              referencia=form.cleaned_data["referencia"])
+                models.Cliente.objects.create(nome=form.cleaned_data["nome"].lower(),
+                                              telefone=form.cleaned_data["telefone"],
+                                              tipo=form.cleaned_data["tipo"],
+                                              endereco=form.cleaned_data["endereco"].lower(),
+                                              bairro=form.cleaned_data["bairro"],
+                                              cidade=form.cleaned_data["cidade"].lower(),
+                                              referencia=form.cleaned_data["referencia"].lower())
                 success = 2
+                client_id = models.Cliente.objects.last()
         else:
             success = 3
-    context = {"success": success}
+
+    context = {"success": success,
+               }
+    if client_id:
+        context["id"] = client_id.id
+
     return TemplateResponse(request, "adicionar_cliente.html", context)
 
 
@@ -77,8 +89,8 @@ def pedidos(request):
     if request.method == "GET":
         pass
     context = {}
-    request.session['cart'] = []
-    del request.session['cart']
+    # request.session['cart'] = []
+    # del request.session['cart']
     return TemplateResponse(request, "pedidos.html", context)
 
 
@@ -90,13 +102,31 @@ def novo_pedido(request):
 
 @login_required
 def escolher_cliente(request):
-    if request.method == "GET":
+    filtered = []
+    success = 1
+    try:
+        referer = request.META['HTTP_REFERER']
+    except KeyError:
+        referer = ""
+    print(referer)
+    check = re.search(r"escolher_cliente", referer)
+    if request.method == "GET" and check:
         form = website.forms.ClienteSearch(request.GET or None)
         if form.is_valid():
+            success = 2
             if form.cleaned_data["nome"] and form.cleaned_data["telefone"]:
+                filtered = models.Cliente.objects.filter(nome__icontains=form.cleaned_data["nome"], telefone=form.cleaned_data["telefone"])
+            elif form.cleaned_data["nome"]:
                 filtered = models.Cliente.objects.filter(nome__icontains=form.cleaned_data["nome"])
+            elif form.cleaned_data["telefone"]:
+                filtered = models.Cliente.objects.filter(telefone=form.cleaned_data["telefone"])
+            if not filtered:
+                success = 3
+        else:
+            success = 4  
 
-    context = {}
+    context = {"filtered": filtered, "success": success}
+    print(success)
     return TemplateResponse(request, "escolher_cliente.html", context)
 
 

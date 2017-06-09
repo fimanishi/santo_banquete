@@ -17,7 +17,8 @@
   <div class="my_menu">
     <div id="adicionar_message"><h3>Escolha o Cliente</h3></div>
   </div>
-  <form action="./" method="POST">
+  <form action="./" method="GET">
+    {% csrf_token %}
     <div style="text-align: center;" class="my_menu2">
       <h4>Insira nome e/ou telefone:</h4>
     </div>
@@ -31,48 +32,51 @@
       <div style="width:300px;" class="input-group">
         <p>Telefone:</p>
         <div style="display: flex; justify-content: space-between;">
-          <input style="width:140px;" type="text" class="field_sizing form-control" placeholder="Telefone" aria-describedby="basic-addon1" name="telefone">
+          <input id="telefone" style="width:140px;" type="text" class="field_sizing form-control" placeholder="Telefone" aria-describedby="basic-addon1" name="telefone" onkeypress='return event.charCode >= 48 && event.charCode <= 57' onchange="brPhoneStyle(event)">
           <button style="width: 120px;" type="submit" class="btn btn-primary" name="button" value="filter">Procurar</button>
         </div>
       </div>
     </div>
   </form>
-{#  {% if success == 4 %}#}
-{#  <div>#}
-{#    <form name="toDelete" method="POST" onsubmit="return false;">#}
-{#      {% for i in filtered %}#}
-{#          <div class="filtered">#}
-{#            <div class="alert alert-info" role="alert">#}
-{#              <div style="display: flex;">#}
-{#                <div class="listing">#}
-{#                  <p><strong>Produto:</strong></p>#}
-{#                  <p>{{ i.produto.nome }}</p>#}
-{#                </div>#}
-{#                <div class="listing">#}
-{#                  <p><strong>Quantidade:</strong></p>#}
-{#                  <p>{{ i.quantidade }}</p>#}
-{#                </div>#}
-{#                <div class="listing">#}
-{#                  <p><strong>Data:</strong></p>#}
-{#                  <p>{{ i.data}}<button type="submit" class="delete_button glyphicon glyphicon-remove" aria-hidden="true" value={{ i.id }} onclick="removeItem(event)"></button></p>#}
-{#                </div>#}
-{#              </div>#}
-{#            </div>#}
-{#          </div>#}
-{#      {% endfor %}#}
-{#    </form>#}
-{#  </div>#}
-{#  {% endif %}#}
-{#  {% if success == 3 %}#}
-{#    <div class="my_menu2">#}
-{#      <div class="alert alert-danger">Insira nome completo e cidade</div>#}
-{#    </div>#}
-{#  {% endif %}#}
-{#  {% if success == 4 %}#}
-{#    <div class="my_menu2">#}
-{#      <div class="alert alert-danger">Cliente já cadastrado</div>#}
-{#    </div>#}
-{#  {% endif %}#}
+  {% if success == 2 %}
+  <div>
+    <form name="chooseClient" method="POST" onsubmit="return false;">
+      {% csrf_token %}
+      {% for i in filtered %}
+        <div class="filtered">
+          <div class="alert alert-info" role="alert">
+            <div style="display: flex;">
+              <div class="listing">
+                <p><strong>Nome:</strong></p>
+                <p>{{ i.nome|title }}</p>
+              </div>
+              <div class="listing">
+                <p><strong>Telefone:</strong></p>
+                <p>{{ i.telefone }}<input style="float:right; margin-top: 0" type="radio" name="cliente" value={{ i.id }}></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+      <div class="my_menu2">
+        <button type="submit" class="btn btn-danger" name="button" value="choose">Escolher cliente</button>
+      </div>
+    </form>
+  </div>
+  {% elif success == 3 %}
+    <div class="my_menu2">
+      <div style="margin-top: 20px;" class="alert alert-danger">Nenhum cliente encontrado</div>
+    </div>
+    <form action="/adicionar_cliente/" method="GET">
+      <div class="my_menu2">
+        <button type="submit" class="btn btn-danger" name="button" value="add">Adicionar cliente</button>
+      </div>
+    </form>
+  {% elif success == 4 %}
+    <div class="my_menu2">
+      <div style="margin-top: 20px;" class="alert alert-danger">Preencha pelo menos um campo</div>
+    </div>
+  {% endif %}
 {% endblock %}
 
 
@@ -93,48 +97,53 @@
       {% endfor %}
     };
 
-      function get_type(event) {
-        $(document).ready(function (){
-          $("#product_list").children().remove();
-          var type = product_list[$("#product_type").val()].sort();
-          for(var i = 0; i < type.length; i++){
-            $("#product_list").append("<option>" + type[i] + "</option>");
-            $('.selectpicker').selectpicker('refresh');
-          }
-        });
-      }
+    function get_type(event) {
+      $(document).ready(function (){
+        $("#product_list").children().remove();
+        var type = product_list[$("#product_type").val()].sort();
+        for(var i = 0; i < type.length; i++){
+          $("#product_list").append("<option>" + type[i] + "</option>");
+          $('.selectpicker').selectpicker('refresh');
+        }
+      });
+    }
 
-      function validateForm() {
-          var check = document.activeElement.value;
-          // var list = ["Tipo", "Produto", "Quantidade", "Data"];
-          var missing = false;
-          if (check === "add"){
-              var qtd = document.getElementById("quantidade").value;
-              var pdt = document.getElementById("product_list").value;
-              var confirmProduct = confirm("Você deseja adicionar o produto abaixo?\nProduto: " + pdt + "\nQuantidade: " + qtd);
-              if (confirmProduct){
-                  $("#producao_form").attr("method", "POST");
-                  return true;
-              }
-              else{
-                  return false;
-              }
-          }
-          else if (check === "filter"){
-              $("#producao_form").attr("method", "GET");
-              return true;
-          }
+    function validateForm() {
+      var check = document.activeElement.value;
+      // var list = ["Tipo", "Produto", "Quantidade", "Data"];
+      var missing = false;
+      if (check === "add"){
+        var qtd = document.getElementById("quantidade").value;
+        var pdt = document.getElementById("product_list").value;
+        var confirmProduct = confirm("Você deseja adicionar o produto abaixo?\nProduto: " + pdt + "\nQuantidade: " + qtd);
+        if (confirmProduct){
+          $("#producao_form").attr("method", "POST");
+          return true;
+        }
+        else{
+          return false;
+        }
       }
-      function removeItem() {
-          $(document).ready(function (){
-              var toDelete = document.activeElement.parentNode.parentNode.parentNode.parentNode.parentNode;
-              $(toDelete).remove();
-{#              axios.post('/remove/item/?id=123')#}
-{#                  .then(function (response) {#}
-{#                     console.log(response.data);#}
-{#                  });#}
-          })
+      else if (check === "filter"){
+        $("#producao_form").attr("method", "GET");
+        return true;
       }
+    }
+
+
+
+    function brPhoneStyle(event){
+      var input = document.getElementById("telefone").value.replace(/\D/g, "");
+      console.log(input);
+      if(input.length === 10){
+        document.getElementById("telefone").value = "(" + input.slice(0,2) + ")" + input.slice(2,6) + "-" + input.slice(-4);
+      }
+      else if(input.length === 11){
+        document.getElementById("telefone").value = "(" + input.slice(0,2) + ")" + input.slice(2,7) + "-" + input.slice(-4);
+      }else{
+        document.getElementById("telefone").value = "";
+      }
+    }
 
 
 

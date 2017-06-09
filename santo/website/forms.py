@@ -20,7 +20,6 @@ class ProducaoData (forms.Form):
         produto = cleaned_data.get("produto")
         quantidade = cleaned_data.get("quantidade")
         button = cleaned_data.get("button")
-        data_field = forms.DateField("data_field")
 
         if button == "add":
             if not (tipo and produto and quantidade):
@@ -48,7 +47,6 @@ class EstoqueData (forms.Form):
         ingrediente = cleaned_data.get("ingrediente")
         quantidade = cleaned_data.get("quantidade")
         button = cleaned_data.get("button")
-        data_field = cleaned_data.get("data_field")
         valor = cleaned_data.get("valor")
 
         if button == "add":
@@ -79,3 +77,10 @@ class ClienteSearch (forms.Form):
 
     def clean(self):
         cleaned_data = super(ClienteSearch, self).clean()
+        nome = cleaned_data.get("nome")
+        telefone = cleaned_data.get("telefone")
+
+        if not (nome or telefone):
+            raise forms.ValidationError(
+                "Needs to input at least one field."
+            )

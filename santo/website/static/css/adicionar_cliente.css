@@ -42,3 +42,14 @@
     cursor: pointer;
     text-decoration: none;
 }
+
+.filtered {
+  width: 300px;
+  margin: 20px auto;
+}
+
+.listing {
+  text-align: left;
+  width: 150px;
+  font-size: 0.8em;
+}
