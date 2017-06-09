@@ -41,6 +41,8 @@ def authenticated(request):
 # required inputs: nome completo and cidade
 @login_required
 def adicionar_cliente(request):
+    request.session["cart"] = []
+    request.session["cart_user"] = {}
     success = 1
     client_id = ""
     if request.method == "POST":
@@ -95,20 +97,64 @@ def pedidos(request):
 
 
 @login_required
+def finalizar_pedido(request):
+    try:
+        referer = request.META['HTTP_REFERER']
+    except KeyError:
+        referer = ""
+    check = re.search(r"finalizar_pedido", referer)
+    if request.method == "POST" and check:
+        pass
+    elif request.method == "POST":
+        pass
+
+
+
+@login_required
 def novo_pedido(request):
-    context = {}
+    success = 1
+    if request.method == "GET":
+        form = website.forms.ClienteSelection(request.GET or None)
+        if form.is_valid():
+            request.session["cart_user"] = models.Cliente.objects.filter(id=form.cleaned_data["cliente"]).values()[0]
+        else:
+            http.HttpResponseRedirect("/escolher_cliente/")
+    elif request.method == "POST":
+        form = website.forms.Pedido(request.POST or None)
+        if form.is_valid():
+            request.session["cart"].append({"product_id": models.Produto.objects.get(nome=form.cleaned_data["produto"]).id, "produto": form.cleaned_data["produto"], "quantity": float(form.cleaned_data["quantidade"])})
+            success = 2
+        else:
+            success = 3
+    # gets all the distinct types of food categories
+    types = models.Produto.objects.filter(~Q(tipo="bebida")).distinct("tipo").order_by("tipo")
+    # gets all products
+    products = models.Produto.objects.all()
+    # creates a dictionary to store all categories and products
+    context = {'products': {}}
+    # dynamically creates the dictionary containing categories and products
+    for i in products:
+        for j in types:
+            context['products'][j.tipo] = models.Produto.objects.filter(tipo=j.tipo)
+    # adds the categories
+    context["types"] = types
+    context["cliente"] = request.session["cart_user"]
+    context["cart"] = request.session["cart"]
+    context["success"] = success
+    request.session.save()
     return TemplateResponse(request, "novo_pedido.html", context)
 
 
 @login_required
 def escolher_cliente(request):
+    request.session["cart"] = []
+    request.session["cart_user"] = {}
     filtered = []
     success = 1
     try:
         referer = request.META['HTTP_REFERER']
     except KeyError:
         referer = ""
-    print(referer)
     check = re.search(r"escolher_cliente", referer)
     if request.method == "GET" and check:
         form = website.forms.ClienteSearch(request.GET or None)

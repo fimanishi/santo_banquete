@@ -18,75 +18,73 @@
     <div id="adicionar_message"><h3>Novo Pedido</h3></div>
   </div>
   <div class="my_menu2">
-    <a href="/novo_pedido"><button style="margin: 5px 0 5px 0;" class="btn btn-danger btn-block">Criar pedido</button></a>
+    <div class="alert alert-info">Cliente: {{ cliente.nome | title}}</div>
   </div>
-  <form action="./" method="GET">
-    <div class="my_menu2">
-      <button type="submit" class="btn btn-primary" name="button" value="filter">Visualizar pedidos</button>
-    </div>
-    <div style="text-align: center;" class="my_menu2">
-      <h4>Filtrar por:</h4>
-    </div>
-    <div class="my_menu2">
-      <div class="long-field input-group">
-        <p>Nome Completo:</p>
-        <input type="text" class="field_sizing form-control" placeholder="Nome Completo" aria-describedby="basic-addon1" name="nome">
+  <div class="my_menu">
+    <form action="./" method="POST">
+      {% csrf_token %}
+      <div class="my_menu3">
+        <div>
+          <p>Tipo:</p>
+          <div style="margin-bottom: 5px;">
+            <select id="product_type" class="selectpicker" title="Selecione o tipo" onchange="get_type(event)" name="tipo">
+              {% for type in types %}
+              <option>{{ type.tipo }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div>
+          <p>Produto:</p>
+          <div style="margin-bottom: 5px;">
+            <select id="product_list" class="selectpicker" title="Selecione o produto" name="produto"> <!-- data-size="x"-->
+            </select>
+          </div>
+        </div>
+        <div>
+          <p>Quantidade:</p>
+          <div>
+            <div style="margin-bottom: 5px;" class="last_production_line input-group">
+              <input id="quantidade" type="text" class="field_sizing form-control" placeholder="Quantidade" aria-describedby="basic-addon1" name="quantidade">
+              <button type="submit" class="btn btn-danger" name="button" value="add">Adicionar</button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="my_menu2">
-      <div class="input-group">
-        <p>Telefone:</p>
-        <input style="width:140px;" type="text" class="field_sizing form-control" placeholder="Telefone" aria-describedby="basic-addon1" name="telefone">
+    </form>
+  </div>
+  {% if success >= 2 %}
+  <div>
+    {% if success == 3 %}
+      <div class="my_menu2">
+        <div style="margin-top: 20px;" class="alert alert-danger">Preencha todos os campos</div>
       </div>
-      <div style="width:120px;">
-        <p>Data:</p>
-        <input id="date_field" class="field_sizing form-control datepicker" data-date-format="mm/dd/yyyy" placeholder="Data" data-date-autoclose=true data-date-today-highlight=true name="data_field">
+    {% endif %}
+    <form name="toDelete" method="POST" onsubmit="return false;">
+      {% for i in cart %}
+        <div class="filtered">
+          <div class="alert alert-info" role="alert">
+            <div style="display: flex;">
+              <div class="listing">
+                <p><strong>Produto:</strong></p>
+                <p>{{ i.produto|title }}</p>
+              </div>
+              <div class="listing">
+                <p><strong>Quantidade:</strong></p>
+                <p>{{ i.quantity }}<button type="submit" style="float: right" class="glyphicon glyphicon-remove" aria-hidden="true" value={{ i.id }} onclick="removeItem(event)"></button></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </form>
+    <form method="POST" action="/finalizar_pedido/">
+      <div class="my_menu2">
+        <button type="submit" class="btn btn-danger" name="button" value="add">Finalizar pedido</button>
       </div>
-    </div>
-    <div style="margin-top: 20px;" class="my_menu2">
-      <p style="margin-bottom: 15px;">Status:</p>
-      <div style="display: flex; justify-content: space-between;" class="input-group">
-        <label class="radio-inline"><input type="radio" name="status" value="True">Entregue</label>
-        <label class="radio-inline"><input type="radio" name="status" value="False">Não Entregue</label>
-      </div>
-    </div>
-  </form>
-{#  {% if success == 4 %}#}
-{#  <div>#}
-{#    <form name="toDelete" method="POST" onsubmit="return false;">#}
-{#      {% for i in filtered %}#}
-{#          <div class="filtered">#}
-{#            <div class="alert alert-info" role="alert">#}
-{#              <div style="display: flex;">#}
-{#                <div class="listing">#}
-{#                  <p><strong>Produto:</strong></p>#}
-{#                  <p>{{ i.produto.nome }}</p>#}
-{#                </div>#}
-{#                <div class="listing">#}
-{#                  <p><strong>Quantidade:</strong></p>#}
-{#                  <p>{{ i.quantidade }}</p>#}
-{#                </div>#}
-{#                <div class="listing">#}
-{#                  <p><strong>Data:</strong></p>#}
-{#                  <p>{{ i.data}}<button type="submit" class="delete_button glyphicon glyphicon-remove" aria-hidden="true" value={{ i.id }} onclick="removeItem(event)"></button></p>#}
-{#                </div>#}
-{#              </div>#}
-{#            </div>#}
-{#          </div>#}
-{#      {% endfor %}#}
-{#    </form>#}
-{#  </div>#}
-{#  {% endif %}#}
-{#  {% if success == 3 %}#}
-{#    <div class="my_menu2">#}
-{#      <div class="alert alert-danger">Insira nome completo e cidade</div>#}
-{#    </div>#}
-{#  {% endif %}#}
-{#  {% if success == 4 %}#}
-{#    <div class="my_menu2">#}
-{#      <div class="alert alert-danger">Cliente já cadastrado</div>#}
-{#    </div>#}
-{#  {% endif %}#}
+    </form>
+  </div>
+  {% endif %}
 {% endblock %}
 
 

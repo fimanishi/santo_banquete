@@ -53,3 +53,30 @@
   width: 150px;
   font-size: 0.8em;
 }
+
+.my_menu3 > div {
+  margin: 0 10px;
+}
+
+.my_menu {
+  display: flex;
+  justify-content: center;
+}
+
+.last_production_line.input-group {
+  width: 220px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.last_production_line.input-group .field_sizing.form-control {
+  width: 100px;
+  display: inline-block;
+}
+
+
+@media screen and (min-width: 780px) {
+    .my_menu3 > div {
+        display: inline-block;
+    }
+}

@@ -40,7 +40,7 @@
   </form>
   {% if success == 2 %}
   <div>
-    <form name="chooseClient" method="POST" onsubmit="return false;">
+    <form action="/novo_pedido/" name="chooseClient" method="GET">
       {% csrf_token %}
       {% for i in filtered %}
         <div class="filtered">

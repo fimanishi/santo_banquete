@@ -10,7 +10,7 @@ class UserForm (forms.Form):
 class ProducaoData (forms.Form):
     tipo = forms.CharField(max_length=50)
     produto = forms.CharField(max_length=50, required=False)
-    quantidade = forms.IntegerField(required=False)
+    quantidade = forms.DecimalField(required=False)
     data_field = forms.DateField(required=False)
     button = forms.CharField(max_length=10)
 
@@ -84,3 +84,13 @@ class ClienteSearch (forms.Form):
             raise forms.ValidationError(
                 "Needs to input at least one field."
             )
+
+
+class ClienteSelection (forms.Form):
+    cliente = forms.IntegerField()
+
+
+class Pedido (forms.Form):
+    tipo = forms.CharField(max_length=50)
+    produto = forms.CharField(max_length=50)
+    quantidade = forms.DecimalField()

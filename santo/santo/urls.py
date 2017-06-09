@@ -31,6 +31,8 @@ urlpatterns = [
     url(r'^adicionar_cliente/$', website.views.adicionar_cliente, name="adicionar_cliente"),
     url(r'^novo_pedido/$', website.views.novo_pedido, name="novo_pedido"),
     url(r'^escolher_cliente/$', website.views.escolher_cliente, name="escolher_cliente"),
+    url(r'^finalizar_pedido/$', website.views.finalizar_pedido, name="finalizar_pedido"),
+
     
     # url(r'^hello$', website.views.hello, name="hello"),
     # url(r'^contact_me$', website.views.contact_me, name="contact_me"),

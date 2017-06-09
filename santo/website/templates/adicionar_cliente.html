@@ -116,7 +116,7 @@
       <div style="margin: 10px 0 10px 0;" class="alert alert-success" role="alert">Cliente adicionado com sucesso</div>
     </div>
     <div class="my_menu2">
-      <form action="/novo_pedido/" method="POST">
+      <form action="/novo_pedido/" method="GET">
         {% csrf_token %}
         <button type="submit" style="margin: 5px 0 5px 0;" class="btn btn-danger btn-block">Criar pedido</button>
         <input type="hidden" name="cliente" value={{ id | default:"" }}>
