@@ -15,7 +15,7 @@
 
 {% block content %}
   <div class="my_menu">
-    <form id="producao_form" action="./" onsubmit="return validateForm()" method="">
+    <form id="producao_form" action="./" onsubmit="return validateForm()">
       {% csrf_token %}
       <div class="my_menu2">
         <div>
@@ -54,13 +54,35 @@
           </div>
         </div>
       </div>
+{#  MODAL  #}
+      <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title" id="myModalLabel">Confirmar Produção</h4>
+            </div>
+            <div class="modal-body">
+              Deseja adicionar o produto abaixo?<br><br>
+              Produto: <span id="produto_modal"></span><br>
+              Quantidade: <span id="quantidade_modal"></span>
+            </div>
+            <div class="modal-footer">
+              <form id="modal_form">
+                <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="rejectModal()" value="no">Nao</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="confirmModal()" value="yes">Sim</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+{# END OF MODAL   #}
     </form>
   </div>
-  {% if success == 2 %}
-  <div class="message">
+  <div id="produto_sucesso" class="message" style="visibility: hidden">
     <div class="alert alert-success" role="alert">Produto adicionado com sucesso</div>
   </div>
-  {% elif success == 3 %}
+  {% if success == 3 %}
   <div class="message">
     <div class="alert alert-danger" role="alert">Selecione tipo, produto e quantidade</div>
   </div>
@@ -102,60 +124,72 @@
   <script src="/static/js/js/bootstrap-select.min.js"></script>
   <script src="/static/js/js_datepicker/bootstrap-datepicker.min.js"></script>
   <script>
-      $('.datepicker').datepicker();
-      // creates an object with the types as keys and products as values
-      var product_list = {
-          // takes keys and values from the
-          {% for tipo, query in products.items %}
-              "{{ tipo }}": [
-                  {% for produto in query %}
-                      '{{ produto.nome }}',
-                  {% endfor %}
-              ],
+    var modal_check = false;
+
+    $('.datepicker').datepicker();
+    // creates an object with the types as keys and products as values
+    var product_list = {
+      // takes keys and values from the
+      {% for tipo, query in products.items %}
+        "{{ tipo }}": [
+          {% for produto in query %}
+            '{{ produto.nome }}',
           {% endfor %}
-      };
+        ],
+      {% endfor %}
+    };
 
       function get_type(event) {
-          $(document).ready(function (){
-              $("#product_list").children().remove();
-              var type = product_list[$("#product_type").val()].sort();
-              for(var i = 0; i < type.length; i++){
-                  $("#product_list").append("<option>" + type[i] + "</option>");
-                  $('.selectpicker').selectpicker('refresh');
-              }
-          });
+        $(document).ready(function (){
+          $("#product_list").children().remove();
+          var type = product_list[$("#product_type").val()].sort();
+          for(var i = 0; i < type.length; i++){
+            $("#product_list").append("<option>" + type[i] + "</option>");
+            $('.selectpicker').selectpicker('refresh');
+          }
+        });
       }
 
       function validateForm() {
-          var check = document.activeElement.value;
-          // var list = ["Tipo", "Produto", "Quantidade", "Data"];
-          var missing = false;
-          if (check === "add"){
-              var qtd = document.getElementById("quantidade").value;
-              var pdt = document.getElementById("product_list").value;
-              var confirmProduct = confirm("Você deseja adicionar o produto abaixo?\nProduto: " + pdt + "\nQuantidade: " + qtd);
-              if (confirmProduct){
-                  $("#producao_form").attr("method", "POST");
-                  return true;
-              }
-              else{
-                  return false;
-              }
+        var check = document.activeElement.value;
+        if (check === "add"){
+          $("#producao_form").attr("method", "POST");
+          document.getElementById("quantidade_modal").innerHTML = document.getElementById("quantidade").value;
+          document.getElementById("produto_modal").innerHTML = document.getElementById("product_list").value;
+          if (modal_check){
+            return true;
           }
-          else if (check === "filter"){
-              $("#producao_form").attr("method", "GET");
-              return true;
+          else{
+            $("#myModal").modal();
+            return false;
           }
+        }
+        else if (check === "filter"){
+          $("#producao_form").attr("method", "GET");
+          return true;
+        }
+        return false;
       }
+
+      function confirmModal() {
+        modal_check = true;
+        document.getElementById("producao_form").submit();
+      }
+      function rejectModal() {
+        document.getElementById("produto_sucesso").style.visibility = "visible";
+        modal_check = false;
+      }
+
+
       function removeItem() {
-          $(document).ready(function (){
-              var toDelete = document.activeElement.parentNode.parentNode.parentNode.parentNode.parentNode;
-              $(toDelete).remove();
+        $(document).ready(function (){
+          var toDelete = document.activeElement.parentNode.parentNode.parentNode.parentNode.parentNode;
+          $(toDelete).remove();
 {#              axios.post('/remove/item/?id=123')#}
 {#                  .then(function (response) {#}
 {#                     console.log(response.data);#}
 {#                  });#}
-          })
+        })
       }
 
 

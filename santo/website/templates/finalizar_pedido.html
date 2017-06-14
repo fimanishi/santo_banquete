@@ -15,51 +15,24 @@
 
 {% block content %}
   <div class="my_menu">
-    <div id="adicionar_message"><h3>Novo Pedido</h3></div>
+    <div id="adicionar_message"><h3>Finalizar Pedido</h3></div>
   </div>
   <div class="my_menu2">
     <div class="alert alert-info">Cliente: {{ cliente.nome | title}}</div>
   </div>
-  <div class="my_menu">
-    <form action="./" method="POST">
-      {% csrf_token %}
-      <div class="my_menu3">
-        <div>
-          <p>Tipo:</p>
-          <div style="margin-bottom: 5px;">
-            <select id="product_type" class="selectpicker" title="Selecione o tipo" onchange="get_type(event)" name="tipo">
-              {% for type in types %}
-              <option>{{ type.tipo }}</option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
-        <div>
-          <p>Produto:</p>
-          <div style="margin-bottom: 5px;">
-            <select id="product_list" class="selectpicker" title="Selecione o produto" name="produto"> <!-- data-size="x"-->
-            </select>
-          </div>
-        </div>
-        <div>
-          <p>Quantidade:</p>
-          <div>
-            <div style="margin-bottom: 5px;" class="last_production_line input-group">
-              <input id="quantidade" type="text" class="field_sizing form-control" placeholder="Quantidade" aria-describedby="basic-addon1" name="quantidade">
-              <button type="submit" class="btn btn-danger" name="button" value="add">Adicionar</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </form>
+  <div class="my_menu2">
+    <div class="alert alert-success"><span style="margin-right: 10px;">Subtotal</span><span style="margin-left: 10px;">R$ 0,00</span></div>
   </div>
-  {% if success >= 2 %}
+  <div class="my_menu2">
+    <h5>Detalhes do pedido:</h5>
+  </div>
   <div>
-    {% if success == 3 %}
-      <div class="my_menu2">
-        <div style="margin-top: 20px;" class="alert alert-danger">Preencha todos os campos</div>
-      </div>
-    {% endif %}
+{#    {% if success == 3 %}#}
+{#      <div class="my_menu2">#}
+{#        <div style="margin-top: 20px;" class="alert alert-danger">Preencha todos os campos</div>#}
+{#      </div>#}
+{#    {% endif %}#}
+
     <form name="toDelete" method="POST" onsubmit="return false;">
       {% for i in cart %}
         <div class="filtered">
@@ -79,13 +52,11 @@
       {% endfor %}
     </form>
     <form method="POST" action="/finalizar_pedido/">
-      {% csrf_token %}
       <div class="my_menu2">
         <button type="submit" class="btn btn-danger" name="button" value="add">Finalizar pedido</button>
       </div>
     </form>
   </div>
-  {% endif %}
 {% endblock %}
 
 

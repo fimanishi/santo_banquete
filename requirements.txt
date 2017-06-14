@@ -3,3 +3,4 @@ uwsgi
 fabric3
 whitenoise
 django-localflavor
+djangorestframework

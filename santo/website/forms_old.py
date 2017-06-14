@@ -2,9 +2,7 @@ from django import forms
 from localflavor.br.forms import BRPhoneNumberField
 
 
-class UserForm (forms.Form):
-    user_name = forms.CharField(max_length=20)
-    user_password = forms.CharField(max_length=20)
+
 
 
 class ProducaoData (forms.Form):

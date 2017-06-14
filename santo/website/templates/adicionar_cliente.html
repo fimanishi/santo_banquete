@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block content %}
-  <div class="my_menu">
+  <div>
     <div id="adicionar_message"><h3>Adicionar novo cliente</h3></div>
     {% if success != 2 %}
     <form id="novo_cliente_form" action="./" method="POST">
@@ -22,6 +22,7 @@
         <div class="long-field input-group">
           <p>Nome Completo:</p>
           <input type="text" class="field_sizing form-control" placeholder="Nome Completo" aria-describedby="basic-addon1" name="nome">
+          <div class="help-block with-errors"></div>
         </div>
       </div>
       <div class="my_menu2">

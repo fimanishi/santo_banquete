@@ -1,5 +1,6 @@
 from django.template.response import TemplateResponse
 import website.forms
+import website.serializer
 from django import forms
 from django import http
 # from django.core.mail import send_mail
@@ -14,6 +15,10 @@ from django.db.models import Q
 from datetime import date
 from django.core.exceptions import ObjectDoesNotExist
 import re
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
 
 # Create your views here.
 
@@ -235,6 +240,7 @@ def escolher_cliente(request):
     return TemplateResponse(request, "escolher_cliente.html", context)
 
 
+@api_view(['GET', 'POST'])
 @login_required
 def producao(request):
     # success = 1 means that the user just entered the view and should render the initial page for that view
@@ -243,11 +249,10 @@ def producao(request):
     filtered = []
     if request.method == "POST":
         # gets tipo, produto and quantidade from ProducaoData form
-        form = website.forms.ProducaoData(request.POST or None, request=request)
-        if form.is_valid():
-            print("test")
+        serializer = website.serializer.ProducaoSerializer(data=request.data, request=request)
+        if serializer.is_valid():
             # gets the id of the produto selected on the form
-            product_id = models.Produto.objects.get(nome=form.cleaned_data["produto"])
+            product_id = models.Produto.objects.get(nome=serializer.validated_data["produto"])
             # filters the Quantidade model for items that have the id of the selected produto
             quantidades = models.Quantidade.objects.filter(produto_id=product_id.id)
             # loops through the filtererd elements
@@ -257,7 +262,7 @@ def producao(request):
                 # gets the item from the Ingrediente model using the relational quantidade_id
                 ingredient_to_change = models.Ingrediente.objects.get(id=quantidade_get.ingrediente_id)
                 # subtracts from the estoque of that item the quantidade_unitaria for the product times the quantidade
-                ingredient_to_change.estoque -= quantidade_get.quantidade_unitaria * form.cleaned_data["quantidade"]
+                ingredient_to_change.estoque -= quantidade_get.quantidade_unitaria * serializer.validated_data["quantidade"]
                 # saves the Ingrediente db
                 ingredient_to_change.save()
             # checks to see if the produto was already added to the producao today
@@ -265,42 +270,42 @@ def producao(request):
                 # gets the item
                 check = models.Producao.objects.get(produto_id=product_id.id, data=date.today())
                 # adds to the previous quantidade the quantidade input by the user
-                check.quantidade += form.cleaned_data["quantidade"]
+                check.quantidade += serializer.validated_data["quantidade"]
                 # saves the Producao db
                 check.save()
             # if this produto was not added to the producao today
             except ObjectDoesNotExist:
                 # adds the produto produced to the Producao model
-                models.Producao.objects.create(produto=product_id, quantidade=form.cleaned_data["quantidade"], usuario = request.user )
+                models.Producao.objects.create(produto=product_id, quantidade=serializer.validated_data["quantidade"], usuario=request.user)
             # success = 2 means that the produto was either update or added successfully
-            success = 2
+            return Response(2)
         else:
             # success = 3 means that the form was invalid. displays message to the user
-            success = 3
+            return Response(3)
     elif request.method == "GET":
         # gets tipo, produto and data_field from ProducaoData form
-        form = website.forms.ProducaoData(request.GET or None)
-        if form.is_valid():
+        serializer = website.serializer.ProducaoSerializer(data=request.data, request=request)
+        if serializer.is_valid():
             # if the user adds a starting date
-            if form.cleaned_data["data_field"]:
+            if serializer.validated_data["data_field"]:
                 # if the user also added a produto
-                if form.cleaned_data["produto"]:
+                if serializer.validated_data["produto"]:
                     # filters from the Producao model by date and produto
-                    filtered = models.Producao.objects.filter(data__gte = form.cleaned_data["data_field"], produto_id__nome = form.cleaned_data["produto"])
+                    filtered = models.Producao.objects.filter(data__gte = serializer.validated_data["data_field"], produto_id__nome = serializer.validated_data["produto"])
                 # if the user only added the tipo and date
-                elif form.cleaned_data["tipo"]:
+                elif serializer.validated_data["tipo"]:
                     # filters from the Producao model by date and tip
-                    filtered = models.Producao.objects.filter(data__gte = form.cleaned_data["data_field"], produto_id__tipo = form.cleaned_data["tipo"])
+                    filtered = models.Producao.objects.filter(data__gte = serializer.validated_data["data_field"], produto_id__tipo = serializer.validated_data["tipo"])
             # if the user doesn't provide the date
-            elif not form.cleaned_data["data_field"]:
+            elif not serializer.validated_data["data_field"]:
                 # if the user provided the produto
-                if form.cleaned_data["produto"]:
+                if serializer.validated_data["produto"]:
                     # filters from the Producao model by produto
-                    filtered = models.Producao.objects.filter(produto_id__nome = form.cleaned_data["produto"])
+                    filtered = models.Producao.objects.filter(produto_id__nome = serializer.validated_data["produto"])
                 # if the user provided only the tipo
-                elif form.cleaned_data["tipo"]:
+                elif serializer.validated_data["tipo"]:
                     # filters from the Producao model by tip
-                    filtered = models.Producao.objects.filter(produto_id__tipo = form.cleaned_data["tipo"])
+                    filtered = models.Producao.objects.filter(produto_id__tipo = serializer.validated_data["tipo"])
             if filtered:
                 success = 4
             else:
