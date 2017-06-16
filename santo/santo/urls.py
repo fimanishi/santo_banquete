@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth.views import logout
-import website.views_new
+import website.views_api
 import website.views
 
 
@@ -34,7 +34,8 @@ urlpatterns = [
     url(r'^novo_pedido/$', website.views.novo_pedido, name="novo_pedido"),
     url(r'^escolher_cliente/$', website.views.escolher_cliente, name="escolher_cliente"),
     url(r'^finalizar_pedido/$', website.views.finalizar_pedido, name="finalizar_pedido"),
-    url(r'^producao/add/$', website.views_new.producao_add, name="producao_add"),
+    url(r'^producao/add/$', website.views_api.producao_add, name="producao_add"),
+    url(r'^estoque/add/$', website.views_api.estoque_add, name="estoque_add"),
 
 
 ]

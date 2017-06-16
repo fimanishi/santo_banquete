@@ -18,7 +18,6 @@ class ProducaoSerializer (serializers.Serializer):
 
     def validate(self, data):
         data = super().validate(data)
-        print(data)
         if self.request.method == "POST":
             if not (data["produto"] and data["quantidade"]):
                 raise serializers.ValidationError(
@@ -33,7 +32,7 @@ class ProducaoSerializer (serializers.Serializer):
 
 
 class EstoqueSerializer (serializers.Serializer):
-    tipo = serializers.CharField(max_length=50)
+    tipo = serializers.CharField(max_length=50, required=False)
     ingrediente = serializers.CharField(max_length=50, required=False)
     quantidade = serializers.DecimalField(required=False, decimal_places=3, localize=True, max_digits=5)
     data_field = serializers.DateField(required=False)
@@ -41,25 +40,22 @@ class EstoqueSerializer (serializers.Serializer):
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request", None)
-        super(ProducaoData, self).__init__(*args, **kwargs)
+        super(EstoqueSerializer, self).__init__(*args, **kwargs)
 
-    def clean(self):
-        validated_data = super(EstoqueSerializer, self).clean()
-        tipo = validated_data.get("tipo")
-        ingrediente = validated_data.get("ingrediente")
-        quantidade = validated_data.get("quantidade")
-        valor = validated_data.get("valor")
+    def validate(self, data):
+        data = super().validate(data)
 
         if self.request.method == "add":
-            if not (tipo and ingrediente and quantidade and valor):
+            if not (data["ingrediente"] and data["quantidade"] and data["valor"]):
                 raise serializers.ValidationError(
                     "Didn't input all fields for add."
                 )
         elif self.request.method == "filter":
-            if quantidade or valor:
+            if data["quantidade"] or data["valor"]:
                 raise serializers.ValidationError(
                     "Didn't input valid fields for filter."
                 )
+        return data
 
 
 class ClienteSerializer (serializers.Serializer):

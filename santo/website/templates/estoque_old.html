@@ -65,30 +65,6 @@
         </div>
       </div>
     </form>
-    {#  MODAL  #}
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="myModalLabel">Confirmar Produção</h4>
-          </div>
-          <div class="modal-body">
-            Deseja adicionar o ingrediente abaixo?<br><br>
-            Ingrediente: <span id="ingrediente_modal"></span><br>
-            Quantidade: <span id="quantidade_modal"></span><br>
-            Valor: R$ <span id="valor_modal"></span>
-          </div>
-          <div class="modal-footer">
-            <form id="modal_form">
-              <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="rejectModal()" value="no">Nao</button>
-              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="confirmModal()" value="yes">Sim</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-    {# END OF MODAL   #}
   </div>
   {% if success == 2 %}
   <div class="message">
@@ -135,110 +111,83 @@
 {% block script %}
   <script src="/static/js/js/bootstrap-select.min.js"></script>
   <script src="/static/js/js_datepicker/bootstrap-datepicker.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
+{#  <script src="/static/js/js_numeric/autoNumeric.min.js"></script>#}
   <script>
 
 {#      $("#valor").autoNumeric("init", {aSep: '.', aDec: ',', aSign: 'R$'}); data-a-sep="." data-a-dec="," data-a-sign="R$"#}
 
-    $('.datepicker').datepicker();
-    // creates an object with the types as keys and products as values
-    var ingredient_list = {
-      // takes keys and values from the
-      {% for tipo, query in ingredients.items %}
-        "{{ tipo }}": [
-          {% for ingredient in query %}
-            '{{ ingredient.nome }}',
+      $('.datepicker').datepicker();
+      // creates an object with the types as keys and products as values
+      var ingredient_list = {
+          // takes keys and values from the
+          {% for tipo, query in ingredients.items %}
+              "{{ tipo }}": [
+                  {% for ingredient in query %}
+                      '{{ ingredient.nome }}',
+                  {% endfor %}
+              ],
           {% endfor %}
-        ],
-      {% endfor %}
-    };
+      };
 
-    var nome_unidade = {
-      //
-      {% for query in ingredients.values %}
-        {% for ingredient in query %}
-          "{{ ingredient.nome }}":
-          '{{ ingredient.unidade }}',
-        {% endfor %}
-      {% endfor %}
-    };
+      var nome_unidade = {
+          //
+          {% for query in ingredients.values %}
+                  {% for ingredient in query %}
+                      "{{ ingredient.nome }}":
+                      '{{ ingredient.unidade }}',
+                  {% endfor %}
+          {% endfor %}
+      };
 
-    function getType(event) {
-      $(document).ready(function (){
-        $("#ingredient_list").children().remove();
-        $("#unidade").text(" ");
-        var type = ingredient_list[$("#ingredient_type").val()].sort();
-        for(var i = 0; i < type.length; i++){
-          $("#ingredient_list").append("<option>" + type[i] + "</option>");
-          $('.selectpicker').selectpicker('refresh');
-        }
-      });
-    }
-
-    function validateForm() {
-      var check = document.activeElement.value;
-      if (check === "add"){
-        var qtd = document.getElementById("quantidade_value").value;
-        var igt = document.getElementById("ingredient_list").value;
-        var vlr = document.getElementById("valor").value;
-        if (qtd && igt && vlr){
-          $("#stock_form").attr("method", "POST");
-          document.getElementById("quantidade_modal").innerHTML = qtd;
-          document.getElementById("ingrediente_modal").innerHTML = igt;
-          document.getElementById("valor_modal").innerHTML = vlr;
-          $("#myModal").modal();
-        }
-{#          else statement to be included here to display the failure to complete all fields#}
+      function getType(event) {
+          $(document).ready(function (){
+              $("#ingredient_list").children().remove();
+              $("#unidade").text(" ");
+              var type = ingredient_list[$("#ingredient_type").val()].sort();
+              console.log(type);
+              for(var i = 0; i < type.length; i++){
+                  $("#ingredient_list").append("<option>" + type[i] + "</option>");
+                  $('.selectpicker').selectpicker('refresh');
+              }
+          });
       }
-      else if (check === "filter"){
-        $("#stock_form").attr("method", "GET");
-      }
-      return false;
-    }
 
-    function confirmModal() {
-      config = {};
-      config["ingrediente"] = document.getElementById("ingredient_list").value;
-      config["quantidade"] = document.getElementById("quantidade_value").value;
-      config["valor"] = document.getElementById("valor").value;
-      $('.selectpicker').selectpicker('val', '');
-      document.getElementById("quantidade_value").value = "";
-      document.getElementById("valor").value = "";
-      axios.post("/estoque/add/", config)
-        .then(function(result){
-          if(result.data === 3){
-            console.log("not added");
+      function validateForm() {
+          var check = document.activeElement.value;
+          if (check === "add"){
+              var qtd = document.getElementById("quantidade_value").value;
+              var pdt = document.getElementById("ingredient_list").value;
+              var vlr = document.getElementById("valor").value;
+              var confirmProduct = confirm("Você deseja adicionar o produto abaixo?\nIngrediente: " + pdt + "\nQuantidade: " + qtd + "\nValor: R$" + vlr);
+              if (confirmProduct){
+                  $("#stock_form").attr("method", "POST");
+                  return true;
+              }
+              else{
+                  return false;
+              }
           }
-          else if(result.data === 2){
-            console.log("added");
+          else if (check === "filter"){
+              $("#stock_form").attr("method", "GET");
+              return true;
           }
-        })
-        .catch(function(error){
-          console.error(error);
-        });
       }
-{#to be done#}
-    function rejectModal() {
-{#      document.getElementById("produto_sucesso").style.visibility = "visible";#}
-      modal_check = false;
-    }
-
-    function removeItem() {
-      $(document).ready(function (){
-        var toDelete = document.activeElement.parentNode.parentNode.parentNode.parentNode.parentNode;
-        $(toDelete).remove();
+      function removeItem() {
+          $(document).ready(function (){
+              var toDelete = document.activeElement.parentNode.parentNode.parentNode.parentNode.parentNode;
+              $(toDelete).remove();
 {#              axios.post('/remove/item/?id=123')#}
 {#                  .then(function (response) {#}
 {#                     console.log(response.data);#}
 {#                  });#}
-      })
-    }
-    function getUnit(event){
-      $(document).ready(function (){
-        var unidade = nome_unidade[$("#ingredient_list").val()];
-        $("#unidade").text(unidade);
-      });
-    }
+          })
+      }
+      function getUnit(event){
+          $(document).ready(function (){
+              var unidade = nome_unidade[$("#ingredient_list").val()];
+              $("#unidade").text(unidade);
+          });
+      }
 
 
 
