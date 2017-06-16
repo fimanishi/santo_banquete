@@ -6,40 +6,38 @@ class UserFormSerializer (serializers.Serializer):
     user_password = serializers.CharField(max_length=20)
 
 
-class ProducaoSerializer (serializers.Form):
-    tipo = serializers.CharField(max_length=50)
+class ProducaoSerializer (serializers.Serializer):
+    tipo = serializers.CharField(max_length=50, required=False)
     produto = serializers.CharField(max_length=50, required=False)
-    quantidade = serializers.DecimalField(required=False)
+    quantidade = serializers.DecimalField(required=False, decimal_places=2, localize=True, max_digits=5)
     data_field = serializers.DateField(required=False)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request", None)
-        super(ProducaoData, self).__init__(*args, **kwargs)
+        super(ProducaoSerializer, self).__init__(*args, **kwargs)
 
-    def clean(self):
-        validated_data = super(ProducaoSerializer, self).clean()
-        tipo = validated_data.get("tipo")
-        produto = validated_data.get("produto")
-        quantidade = validated_data.get("quantidade")
-
+    def validate(self, data):
+        data = super().validate(data)
+        print(data)
         if self.request.method == "POST":
-            if not (tipo and produto and quantidade):
+            if not (data["produto"] and data["quantidade"]):
                 raise serializers.ValidationError(
                     "Didn't input all fields for add."
                 )
         elif self.request.method == "GET":
-            if quantidade:
+            if data["quantidade"]:
                 raise serializers.ValidationError(
                     "Didn't input valid fields for filter."
                 )
+        return data
 
 
-class EstoqueSerializer (serializers.Form):
+class EstoqueSerializer (serializers.Serializer):
     tipo = serializers.CharField(max_length=50)
     ingrediente = serializers.CharField(max_length=50, required=False)
-    quantidade = serializers.DecimalField(required=False, decimal_places=3, localize=True)
+    quantidade = serializers.DecimalField(required=False, decimal_places=3, localize=True, max_digits=5)
     data_field = serializers.DateField(required=False)
-    valor = serializers.DecimalField(required=False, decimal_places=2, localize=True)
+    valor = serializers.DecimalField(required=False, decimal_places=2, localize=True, max_digits=5)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request", None)
@@ -64,7 +62,7 @@ class EstoqueSerializer (serializers.Form):
                 )
 
 
-class ClienteSerializer (serializers.Form):
+class ClienteSerializer (serializers.Serializer):
     nome = serializers.CharField(max_length=60)
     telefone = serializers.CharField(max_length=20, required=False)
     tipo = serializers.CharField(max_length=2, required=False)
@@ -74,7 +72,7 @@ class ClienteSerializer (serializers.Form):
     referencia = serializers.CharField(max_length=50, required=False)
 
 
-class ClienteSearchSerializer (serializers.Form):
+class ClienteSearchSerializer (serializers.Serializer):
     nome = serializers.CharField(max_length=60, required=False)
     telefone = serializers.CharField(max_length=20, required=False)
 
@@ -90,11 +88,10 @@ class ClienteSearchSerializer (serializers.Form):
         return validated_data
 
 
-class ClienteSelectionSerializer (serializers.Form):
+class ClienteSelectionSerializer (serializers.Serializer):
     cliente = serializers.IntegerField()
 
 
-class Pedido (serializers.Form):
+class Pedido (serializers.Serializer):
     tipo = serializers.CharField(max_length=50)
     produto = serializers.CharField(max_length=50)
-    quantidade = serializers.DecimalField()

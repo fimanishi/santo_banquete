@@ -322,7 +322,7 @@ def producao(request):
     if request.method == "POST":
         return http.HttpResponseRedirect("/producao/")
     else:
-        return TemplateResponse(request, "producao.html", context)
+        return TemplateResponse(request, "producao_new.html", context)
 
 
 @login_required

@@ -16,8 +16,10 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth.views import logout
-
+import website.views_new
 import website.views
+
+
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -32,9 +34,7 @@ urlpatterns = [
     url(r'^novo_pedido/$', website.views.novo_pedido, name="novo_pedido"),
     url(r'^escolher_cliente/$', website.views.escolher_cliente, name="escolher_cliente"),
     url(r'^finalizar_pedido/$', website.views.finalizar_pedido, name="finalizar_pedido"),
+    url(r'^producao/add/$', website.views_new.producao_add, name="producao_add"),
 
-    
-    # url(r'^hello$', website.views.hello, name="hello"),
-    # url(r'^contact_me$', website.views.contact_me, name="contact_me"),
-    # url(r'^thanks$', website.views.thanks, name="thanks"),
+
 ]

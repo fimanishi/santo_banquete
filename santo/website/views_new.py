@@ -18,6 +18,7 @@ import re
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.views.decorators.csrf import csrf_exempt
 
 
 # Create your views here.
@@ -240,17 +241,15 @@ def escolher_cliente(request):
     return TemplateResponse(request, "escolher_cliente.html", context)
 
 
-@api_view(['GET', 'POST'])
+@api_view(["POST"])
 @login_required
-def producao(request):
-    # success = 1 means that the user just entered the view and should render the initial page for that view
-    success = 1
-    # initializes an empty list that will receive filtered items from db
-    filtered = []
+def producao_add(request):
     if request.method == "POST":
         # gets tipo, produto and quantidade from ProducaoData form
         serializer = website.serializer.ProducaoSerializer(data=request.data, request=request)
+        print(serializer)
         if serializer.is_valid():
+            print("yes")
             # gets the id of the produto selected on the form
             product_id = models.Produto.objects.get(nome=serializer.validated_data["produto"])
             # filters the Quantidade model for items that have the id of the selected produto
@@ -281,8 +280,15 @@ def producao(request):
             return Response(2)
         else:
             # success = 3 means that the form was invalid. displays message to the user
+            print(serializer.errors)
             return Response(3)
-    elif request.method == "GET":
+
+
+@api_view(["GET"])
+@login_required
+def producao_filter(request):
+    filtered = []
+    if request.method == "GET":
         # gets tipo, produto and data_field from ProducaoData form
         serializer = website.serializer.ProducaoSerializer(data=request.data, request=request)
         if serializer.is_valid():
@@ -307,9 +313,19 @@ def producao(request):
                     # filters from the Producao model by tip
                     filtered = models.Producao.objects.filter(produto_id__tipo = serializer.validated_data["tipo"])
             if filtered:
-                success = 4
+                return Response(4)
             else:
-                success = 5
+                return Response(5)
+
+
+@api_view(['GET', 'POST'])
+@login_required
+def producao(request):
+    # success = 1 means that the user just entered the view and should render the initial page for that view
+    success = 1
+    # initializes an empty list that will receive filtered items from db
+    filtered = []
+
     # gets all the distinct types of food categories
     types = models.Produto.objects.filter(~Q(tipo="bebida")).distinct("tipo").order_by("tipo")
     # gets all products
