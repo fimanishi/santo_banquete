@@ -4,6 +4,9 @@
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css_datepicker/bootstrap-datepicker.min.css">
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css/bootstrap-select.min.css" />
   <link rel="stylesheet" type="text/css" href="/static/css/producao.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react-dom.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
 
 {% endblock %}
 
@@ -48,7 +51,7 @@
           <p>Filtro:</p>
           <div>
             <div style="width: 200px; margin-bottom: 5px;" class="last_production_line input-group">
-              <input id="date_field" class="field_sizing form-control datepicker" data-date-format="mm/dd/yyyy" placeholder="Data" data-date-autoclose=true data-date-today-highlight=true name="data_field">
+              <input id="date_field" class="field_sizing form-control datepicker" data-date-format="dd/mm/yyyy" placeholder="Data" data-date-autoclose=true data-date-today-highlight=true name="data_field">
               <button type="submit" class="btn btn-primary" name="button" value="filter">Filtrar</button>
             </div>
           </div>
@@ -79,6 +82,7 @@
     </div>
   {# END OF MODAL   #}
   </div>
+  <div id="result_list"></div>
   <div id="produto_sucesso" class="message" style="visibility: hidden">
     <div class="alert alert-success" role="alert">Produto adicionado com sucesso</div>
   </div>
@@ -124,9 +128,27 @@
   <script src="/static/js/js/bootstrap-select.min.js"></script>
   <script src="/static/js/js_datepicker/bootstrap-datepicker.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
+  <script type="text/babel">
+
+    class Greeting extends React.Component{
+      render() {
+        return (
+          <p>Hello, Universe</p>
+        );
+      }
+    }
+
+    ReactDOM.render(
+      <Greeting/>,
+      document.getElementById('result_list')
+    );
+
+
+  </script>
   <script>
+
+
     var modal_check = false;
-    var config = {params: {}};
 
     $('.datepicker').datepicker();
     // creates an object with the types as keys and products as values
@@ -158,7 +180,6 @@
         var qtd = document.getElementById("quantidade").value;
         var pdt = document.getElementById("product_list").value;
         if (qtd && pdt){
-          $("#producao_form").attr("method", "POST");
           document.getElementById("quantidade_modal").innerHTML = qtd;
           document.getElementById("produto_modal").innerHTML = pdt;
           $("#myModal").modal();
@@ -166,18 +187,37 @@
 {#          else statement to be included here to display the failure to complete all fields#}
       }
       else if (check === "filter"){
-        $("#producao_form").attr("method", "GET");
+        var data = {};
+        data.tipo = document.getElementById("product_type").value;
+        data.produto = document.getElementById("product_list").value;
+        if (document.getElementById("date_field").value){
+          data.data_field = document.getElementById("date_field").value;
+        }
+        else{
+          data.data_field = "01/01/2001";
+        }
+        data.action = "filter";
+        if (data.tipo || data.produto || data.data_field){
+          axios.post("/producao/filter/", data)
+            .then(function(result){
+              console.log(result);
+            })
+            .catch(function(error){
+              console.error(error.response.data);
+            })
+        }
       }
       return false;
     }
 
     function confirmModal() {
-      config = {};
-      config["produto"] = document.getElementById("product_list").value;
-      config["quantidade"] = document.getElementById("quantidade").value;
+      var data = {};
+      data.produto = document.getElementById("product_list").value;
+      data.quantidade = document.getElementById("quantidade").value;
+      data.action = "add";
       $('.selectpicker').selectpicker('val', '');
       document.getElementById("quantidade").value = "";
-      axios.post("/producao/add/", config)
+      axios.post("/producao/add/", data)
         .then(function(result){
           if(result.data === 3){
             console.log("not added");

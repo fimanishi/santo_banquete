@@ -1,4 +1,5 @@
 from rest_framework import serializers
+import datetime
 
 
 class UserFormSerializer (serializers.Serializer):
@@ -7,24 +8,24 @@ class UserFormSerializer (serializers.Serializer):
 
 
 class ProducaoSerializer (serializers.Serializer):
-    tipo = serializers.CharField(max_length=50, required=False)
-    produto = serializers.CharField(max_length=50, required=False)
+    tipo = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    produto = serializers.CharField(max_length=50, required=False, allow_blank=True)
     quantidade = serializers.DecimalField(required=False, decimal_places=2, localize=True, max_digits=5)
-    data_field = serializers.DateField(required=False)
-
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop("request", None)
-        super(ProducaoSerializer, self).__init__(*args, **kwargs)
+    data_field = serializers.DateField(required=False, input_formats=["%d/%m/%Y"])
+    action = serializers.CharField(max_length=10)
 
     def validate(self, data):
+        print("test")
         data = super().validate(data)
-        if self.request.method == "POST":
+        if data["action"] == "add":
+            print(data)
             if not (data["produto"] and data["quantidade"]):
                 raise serializers.ValidationError(
                     "Didn't input all fields for add."
                 )
-        elif self.request.method == "GET":
-            if data["quantidade"]:
+        elif data["action"] == "filter":
+            print(data)
+            if not (data["tipo"] or data["produto"] or data["data_field"]):
                 raise serializers.ValidationError(
                     "Didn't input valid fields for filter."
                 )

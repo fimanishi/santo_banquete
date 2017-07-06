@@ -125,8 +125,10 @@ def pedidos(request):
     return TemplateResponse(request, "pedidos.html", context)
 
 
+# need to create API to update subtotal based on delivery
+@api_view(["GET"])
 @login_required
-def finalizar_pedido(request):
+def finalizar_pedido_delivery(request):
     try:
         referer = request.META['HTTP_REFERER']
     except KeyError:
@@ -246,7 +248,8 @@ def escolher_cliente(request):
 def producao_add(request):
     if request.method == "POST":
         # gets tipo, produto and quantidade from ProducaoData form
-        serializer = website.serializer.ProducaoSerializer(data=request.data, request=request)
+        serializer = website.serializer.ProducaoSerializer(data=request.data)
+        print(serializer)
         if serializer.is_valid():
             # gets the id of the produto selected on the form
             product_id = models.Produto.objects.get(nome=serializer.validated_data["produto"])
@@ -283,14 +286,15 @@ def producao_add(request):
 
 
 # to be completed
-@api_view(["GET"])
+@api_view(["POST"])
 @login_required
 def producao_filter(request):
     filtered = []
-    if request.method == "GET":
+    if request.method == "POST":
         # gets tipo, produto and data_field from ProducaoData form
-        serializer = website.serializer.ProducaoSerializer(data=request.data, request=request)
-        if serializer.is_valid():
+        serializer = website.serializer.ProducaoSerializer(data=request.data)
+        print(serializer)
+        if serializer.is_valid(raise_exception=True):
             # if the user adds a starting date
             if serializer.validated_data["data_field"]:
                 # if the user also added a produto
@@ -312,9 +316,12 @@ def producao_filter(request):
                     # filters from the Producao model by tip
                     filtered = models.Producao.objects.filter(produto_id__tipo = serializer.validated_data["tipo"])
             if filtered:
+                print(filtered)
                 return Response(4)
             else:
                 return Response(5)
+        else:
+            return Response(3)
 
 
 @api_view(["POST"])

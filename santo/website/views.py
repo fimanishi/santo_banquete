@@ -149,7 +149,20 @@ def novo_pedido(request):
         form = website.forms.Pedido(request.POST or None)
         if form.is_valid():
             # appends to the cart list a dictionary with the produto_id, nome and quantidade
-            request.session["cart"].append({"product_id": models.Produto.objects.get(nome=form.cleaned_data["produto"]).id,
+            exists = False
+            if request.session["cart"]:
+                for i in request.session["cart"]:
+                    if i["product_id"] == models.Produto.objects.get(nome=form.cleaned_data["produto"]).id:
+                        i["quantity"] += float(form.cleaned_data["quantidade"])
+                        exists = True
+                        break
+                if not exists:
+                    request.session["cart"].append(
+                        {"product_id": models.Produto.objects.get(nome=form.cleaned_data["produto"]).id,
+                         "produto": form.cleaned_data["produto"], "quantity": float(form.cleaned_data["quantidade"]),
+                         "cost": float(models.Produto.objects.get(nome=form.cleaned_data["produto"]).valor)})
+            else:
+                request.session["cart"].append({"product_id": models.Produto.objects.get(nome=form.cleaned_data["produto"]).id,
                                             "produto": form.cleaned_data["produto"], "quantity": float(form.cleaned_data["quantidade"]),
                                             "cost": float(models.Produto.objects.get(nome=form.cleaned_data["produto"]).valor)})
         else:

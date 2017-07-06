@@ -197,14 +197,14 @@
     }
 
     function confirmModal() {
-      config = {};
-      config["ingrediente"] = document.getElementById("ingredient_list").value;
-      config["quantidade"] = document.getElementById("quantidade_value").value;
-      config["valor"] = document.getElementById("valor").value;
+      data = {};
+      data["ingrediente"] = document.getElementById("ingredient_list").value;
+      data["quantidade"] = document.getElementById("quantidade_value").value;
+      data["valor"] = document.getElementById("valor").value;
       $('.selectpicker').selectpicker('val', '');
       document.getElementById("quantidade_value").value = "";
       document.getElementById("valor").value = "";
-      axios.post("/estoque/add/", config)
+      axios.post("/estoque/add/", data)
         .then(function(result){
           if(result.data === 3){
             console.log("not added");
