@@ -8,23 +8,22 @@ class UserFormSerializer (serializers.Serializer):
 
 
 class ProducaoSerializer (serializers.Serializer):
+    id = serializers.IntegerField(required=False)
+    data_output = serializers.DateField(required=False, format="%d/%m/%Y")
     tipo = serializers.CharField(max_length=50, required=False, allow_blank=True)
     produto = serializers.CharField(max_length=50, required=False, allow_blank=True)
     quantidade = serializers.DecimalField(required=False, decimal_places=2, localize=True, max_digits=5)
-    data_field = serializers.DateField(required=False, input_formats=["%d/%m/%Y"])
-    action = serializers.CharField(max_length=10)
+    data_field = serializers.DateField(required=False, input_formats=["%d/%m/%Y", ""])
+    action = serializers.CharField(max_length=10, required=False)
 
     def validate(self, data):
-        print("test")
         data = super().validate(data)
         if data["action"] == "add":
-            print(data)
             if not (data["produto"] and data["quantidade"]):
                 raise serializers.ValidationError(
                     "Didn't input all fields for add."
                 )
         elif data["action"] == "filter":
-            print(data)
             if not (data["tipo"] or data["produto"] or data["data_field"]):
                 raise serializers.ValidationError(
                     "Didn't input valid fields for filter."

@@ -290,10 +290,10 @@ def producao_add(request):
 @login_required
 def producao_filter(request):
     filtered = []
+    filtered_json = []
     if request.method == "POST":
         # gets tipo, produto and data_field from ProducaoData form
         serializer = website.serializer.ProducaoSerializer(data=request.data)
-        print(serializer)
         if serializer.is_valid(raise_exception=True):
             # if the user adds a starting date
             if serializer.validated_data["data_field"]:
@@ -316,8 +316,11 @@ def producao_filter(request):
                     # filters from the Producao model by tip
                     filtered = models.Producao.objects.filter(produto_id__tipo = serializer.validated_data["tipo"])
             if filtered:
-                print(filtered)
-                return Response(4)
+                for i in filtered:
+                    filtered_json.append({"quantidade": float(i.quantidade), "id": i.produto.id, "produto": i.produto.nome, "data_output": i.data})
+                print(filtered_json)
+                s = website.serializer.ProducaoSerializer(filtered_json, many=True)
+                return Response(s.data)
             else:
                 return Response(5)
         else:
