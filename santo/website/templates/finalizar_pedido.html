@@ -17,11 +17,28 @@
   <div class="my_menu">
     <div id="adicionar_message"><h3>Finalizar Pedido</h3></div>
   </div>
-  <div class="my_menu2">
+  <div style="margin-bottom: 0" class="my_menu2">
     <div class="alert alert-info">Cliente: {{ cliente.nome | title}}</div>
   </div>
   <div class="my_menu2">
-    <div class="alert alert-success"><span style="margin-right: 10px;">Subtotal</span><span style="margin-left: 10px;">R$ 0,00</span></div>
+    <p>Delivery:</p>
+    <div style="display: flex; justify-content: space-between;" class="input-group">
+      <form id="delivery">
+        <label class="radio-inline"><input type="radio" name="delivery" value="True" onchange="updateDelivery()">Sim</label>
+        <label class="radio-inline"><input type="radio" name="delivery" value="False" onchange="updateDelivery()">Não</label>
+      </form>
+    </div>
+  </div>
+  <div class="my_menu2">
+    <div style="width: 100%; display: flex; justify-content: space-between;">
+      <p>Data de entrega:</p>
+      <form>
+        <input style="width:120px;" id="date_field" class="field_sizing form-control datepicker" data-date-format="mm/dd/yyyy" placeholder="Data" data-date-autoclose=true data-date-today-highlight=true name="data_field">
+      </form>
+    </div>
+  </div>
+  <div style="margin: 20px auto 0 auto;" class="my_menu2">
+    <div class="alert alert-success"><span style="margin-right: 10px;">Subtotal</span><span style="margin-left: 10px;">R$ <span id="subtotal">{% load display_decimals %}{{ subtotal|display_decimals }}</span></span></div>
   </div>
   <div class="my_menu2">
     <h5>Detalhes do pedido:</h5>
@@ -63,62 +80,70 @@
 {% block script %}
   <script src="/static/js/js/bootstrap-select.min.js"></script>
   <script src="/static/js/js_datepicker/bootstrap-datepicker.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
   <script>
     $('.datepicker').datepicker();
     // creates an object with the types as keys and products as values
-    var product_list = {
-      // takes keys and values from the
-      {% for tipo, query in products.items %}
-        "{{ tipo }}": [
-          {% for produto in query %}
-            '{{ produto.nome }}',
-          {% endfor %}
-        ],
-      {% endfor %}
-    };
 
-      function get_type(event) {
-        $(document).ready(function (){
-          $("#product_list").children().remove();
-          var type = product_list[$("#product_type").val()].sort();
-          for(var i = 0; i < type.length; i++){
-            $("#product_list").append("<option>" + type[i] + "</option>");
-            $('.selectpicker').selectpicker('refresh');
+    function updateDelivery(){
+      var data = {};
+      data["delivery"] = document.activeElement.value;
+      axios.post("/finalizar_pedido/delivery/", data)
+        .then(function(result){
+          if(result.data === 3){
+            console.log("not added");
           }
+          else if(result.data === 2){
+            console.log("added");
+          }
+        })
+        .catch(function(error){
+          console.error(error);
         });
-      }
+    }
 
-      function validateForm() {
-          var check = document.activeElement.value;
-          // var list = ["Tipo", "Produto", "Quantidade", "Data"];
-          var missing = false;
-          if (check === "add"){
-              var qtd = document.getElementById("quantidade").value;
-              var pdt = document.getElementById("product_list").value;
-              var confirmProduct = confirm("Você deseja adicionar o produto abaixo?\nProduto: " + pdt + "\nQuantidade: " + qtd);
-              if (confirmProduct){
-                  $("#producao_form").attr("method", "POST");
-                  return true;
-              }
-              else{
-                  return false;
-              }
-          }
-          else if (check === "filter"){
-              $("#producao_form").attr("method", "GET");
-              return true;
-          }
+    function get_type(event) {
+      $(document).ready(function (){
+        $("#product_list").children().remove();
+        var type = product_list[$("#product_type").val()].sort();
+        for(var i = 0; i < type.length; i++){
+          $("#product_list").append("<option>" + type[i] + "</option>");
+          $('.selectpicker').selectpicker('refresh');
+        }
+      });
+    }
+
+    function validateForm() {
+      var check = document.activeElement.value;
+      // var list = ["Tipo", "Produto", "Quantidade", "Data"];
+      var missing = false;
+      if (check === "add"){
+        var qtd = document.getElementById("quantidade").value;
+        var pdt = document.getElementById("product_list").value;
+        var confirmProduct = confirm("Você deseja adicionar o produto abaixo?\nProduto: " + pdt + "\nQuantidade: " + qtd);
+        if (confirmProduct){
+          $("#producao_form").attr("method", "POST");
+          return true;
+        }
+        else{
+          return false;
+        }
       }
-      function removeItem() {
-          $(document).ready(function (){
-              var toDelete = document.activeElement.parentNode.parentNode.parentNode.parentNode.parentNode;
-              $(toDelete).remove();
+      else if (check === "filter"){
+        $("#producao_form").attr("method", "GET");
+        return true;
+      }
+    }
+    function removeItem() {
+      $(document).ready(function (){
+        var toDelete = document.activeElement.parentNode.parentNode.parentNode.parentNode.parentNode;
+        $(toDelete).remove();
 {#              axios.post('/remove/item/?id=123')#}
 {#                  .then(function (response) {#}
 {#                     console.log(response.data);#}
 {#                  });#}
-          })
-      }
+      })
+    }
 
 
 

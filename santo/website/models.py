@@ -8,6 +8,7 @@ class Produto(models.Model):
         db_table = "produto"
     nome = models.CharField(max_length=50)
     tipo = models.CharField(max_length=20)
+    valor = models.FloatField()
 
 
 class Ingrediente(models.Model):

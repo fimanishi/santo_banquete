@@ -18,6 +18,7 @@ import re
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.views.decorators.csrf import csrf_exempt
 
 
 # Create your views here.
@@ -124,8 +125,10 @@ def pedidos(request):
     return TemplateResponse(request, "pedidos.html", context)
 
 
+# need to create API to update subtotal based on delivery
+@api_view(["GET"])
 @login_required
-def finalizar_pedido(request):
+def finalizar_pedido_delivery(request):
     try:
         referer = request.META['HTTP_REFERER']
     except KeyError:
@@ -240,16 +243,13 @@ def escolher_cliente(request):
     return TemplateResponse(request, "escolher_cliente.html", context)
 
 
-@api_view(['GET', 'POST'])
+@api_view(["POST"])
 @login_required
-def producao(request):
-    # success = 1 means that the user just entered the view and should render the initial page for that view
-    success = 1
-    # initializes an empty list that will receive filtered items from db
-    filtered = []
+def producao_add(request):
     if request.method == "POST":
         # gets tipo, produto and quantidade from ProducaoData form
-        serializer = website.serializer.ProducaoSerializer(data=request.data, request=request)
+        serializer = website.serializer.ProducaoSerializer(data=request.data)
+        print(serializer)
         if serializer.is_valid():
             # gets the id of the produto selected on the form
             product_id = models.Produto.objects.get(nome=serializer.validated_data["produto"])
@@ -281,11 +281,20 @@ def producao(request):
             return Response(2)
         else:
             # success = 3 means that the form was invalid. displays message to the user
+            print(serializer.errors)
             return Response(3)
-    elif request.method == "GET":
+
+
+# to be completed
+@api_view(["POST"])
+@login_required
+def producao_filter(request):
+    filtered = []
+    filtered_json = []
+    if request.method == "POST":
         # gets tipo, produto and data_field from ProducaoData form
-        serializer = website.serializer.ProducaoSerializer(data=request.data, request=request)
-        if serializer.is_valid():
+        serializer = website.serializer.ProducaoSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
             # if the user adds a starting date
             if serializer.validated_data["data_field"]:
                 # if the user also added a produto
@@ -307,53 +316,47 @@ def producao(request):
                     # filters from the Producao model by tip
                     filtered = models.Producao.objects.filter(produto_id__tipo = serializer.validated_data["tipo"])
             if filtered:
-                success = 4
+                for i in filtered:
+                    filtered_json.append({"quantidade": float(i.quantidade), "id": i.produto.id, "produto": i.produto.nome, "data_output": i.data})
+                print(filtered_json)
+                s = website.serializer.ProducaoSerializer(filtered_json, many=True)
+                return Response(s.data)
             else:
-                success = 5
-    # gets all the distinct types of food categories
-    types = models.Produto.objects.filter(~Q(tipo="bebida")).distinct("tipo").order_by("tipo")
-    # gets all products
-    products = models.Produto.objects.all()
-    # creates a dictionary to store all categories and products
-    context = {'products': {}}
-    # dynamically creates the dictionary containing categories and products
-    for i in products:
-        for j in types:
-            context['products'][j.tipo] = models.Produto.objects.filter(tipo=j.tipo)
-    # adds the categories
-    context["types"] = types
-    context["success"] = success
-    context["filtered"] = filtered
-    if request.method == "POST":
-        return http.HttpResponseRedirect("/producao/")
-    else:
-        return TemplateResponse(request, "producao.html", context)
+                return Response(5)
+        else:
+            return Response(3)
 
 
+@api_view(["POST"])
 @login_required
-def estoque(request):
-    # handling forms
-    success = 1
-    filtered = []
+def estoque_add(request):
     if request.method == "POST":
-        form = website.forms.EstoqueData(request.POST or None)
-        if form.is_valid():
-            ingredient_id = models.Ingrediente.objects.get(nome=form.cleaned_data["ingrediente"])
+        serializer = website.serializer.EstoqueSerializer(data=request.data, request=request)
+        if serializer.is_valid():
+            ingredient_id = models.Ingrediente.objects.get(nome=serializer.validated_data["ingrediente"])
             # function to update the stock
-            ingredient_id.estoque += form.cleaned_data["quantidade"]
-            ingredient_id.total_comprado += form.cleaned_data["quantidade"]
+            ingredient_id.estoque += serializer.validated_data["quantidade"]
+            ingredient_id.total_comprado += serializer.validated_data["quantidade"]
             ingredient_id.ultima_compra = date.today()
-            ingredient_id.valor_comprado += form.cleaned_data["valor"]
+            ingredient_id.valor_comprado += serializer.validated_data["valor"]
             try:
                 ingredient_id.preco_medio = ingredient_id.valor_comprado / ingredient_id.total_comprado
             except ZeroDivisionError:
                 ingredient_id.preco_medio = 0
 
             ingredient_id.save()
-            success = 2
+            return Response(2)
         else:
-            success = 3
-    elif request.method == "GET":
+            return Response(3)
+
+
+# to be completed
+@api_view(["GET"])
+@login_required
+def estoque_filter(request):
+    # handling forms
+    filtered =[]
+    if request.method == "GET":
         form = website.forms.EstoqueData(request.GET or None)
         if form.is_valid():
             if form.cleaned_data["data_field"]:
@@ -370,66 +373,4 @@ def estoque(request):
                 success = 4
             else:
                 success = 5
-    # gets all the distinct types of ingredient categories
-    types = models.Ingrediente.objects.all().distinct("tipo").order_by("tipo")
-    # gets all products
-    ingredients = models.Ingrediente.objects.all()
-    # creates a dictionary to store all categories and products
-    context = {'ingredients': {}}
-    # dynamically creates the dictionary containing categories and products
-    for i in ingredients:
-        for j in types:
-            context['ingredients'][j.tipo] = models.Ingrediente.objects.filter(tipo=j.tipo)
-    # adds the categories
-    context["types"] = types
-    context["success"] = success
-    context["filtered"] = filtered
 
-    return TemplateResponse(request, "estoque.html", context)
-
-
-def test(request):
-    produto = get_object_or_404(models.Ingrediente, id=1)
-    print(produto.nome)
-    print(produto.estoque)
-    print(produto.estoque)
-    context = {}
-    return TemplateResponse(request, "index.html", context)
-# def hello(request):
-#     # form  = website.forms.NameForm(request.POST or None)
-#     #
-#     # if request.method == 'POST':
-#     #     if form.is_valid():
-#     #         print(form.cleaned_data['your_name'])
-#     #         return http.HttpResponseRedirect('/thanks/')
-#
-#     context = {
-#         'form': form,
-#     }
-#     return TemplateResponse(request, "hello.html", context)
-
-# def contact_me(request):
-#     form = website.forms.ClassForm(request.POST or None, request.FILES or None)
-#
-#     if request.method == "POST":
-#         if form.is_valid():
-#             print(form.cleaned_data)
-#             email = EmailMessage(
-#             form.cleaned_data["your_name"],
-#             form.cleaned_data["your_question"],
-#             form.cleaned_data["your_email"],
-#             ["fimanishi@gmail.com"],
-#             )
-#             email.attach(form.cleaned_data["your_image"].name, form.cleaned_data["your_image"].read())
-#             email.send(fail_silently=False)
-#
-#             return http.HttpResponseRedirect('/thanks')
-#         else:
-#             print(form.errors)
-#
-#     context = {}
-#     return TemplateResponse(request, "contact_me.html", context)
-#
-# def thanks(request):
-#     context = {}
-#     return TemplateResponse(request, "thanks.html", context)

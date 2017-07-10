@@ -1,4 +1,5 @@
 from rest_framework import serializers
+import datetime
 
 
 class UserFormSerializer (serializers.Serializer):
@@ -6,65 +7,58 @@ class UserFormSerializer (serializers.Serializer):
     user_password = serializers.CharField(max_length=20)
 
 
-class ProducaoSerializer (serializers.Form):
-    tipo = serializers.CharField(max_length=50)
-    produto = serializers.CharField(max_length=50, required=False)
-    quantidade = serializers.DecimalField(required=False)
-    data_field = serializers.DateField(required=False)
+class ProducaoSerializer (serializers.Serializer):
+    id = serializers.IntegerField(required=False)
+    data_output = serializers.DateField(required=False, format="%d/%m/%Y")
+    tipo = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    produto = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    quantidade = serializers.DecimalField(required=False, decimal_places=2, localize=True, max_digits=5)
+    data_field = serializers.DateField(required=False, input_formats=["%d/%m/%Y", ""])
+    action = serializers.CharField(max_length=10, required=False)
 
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop("request", None)
-        super(ProducaoData, self).__init__(*args, **kwargs)
-
-    def clean(self):
-        validated_data = super(ProducaoSerializer, self).clean()
-        tipo = validated_data.get("tipo")
-        produto = validated_data.get("produto")
-        quantidade = validated_data.get("quantidade")
-
-        if self.request.method == "POST":
-            if not (tipo and produto and quantidade):
+    def validate(self, data):
+        data = super().validate(data)
+        if data["action"] == "add":
+            if not (data["produto"] and data["quantidade"]):
                 raise serializers.ValidationError(
                     "Didn't input all fields for add."
                 )
-        elif self.request.method == "GET":
-            if quantidade:
+        elif data["action"] == "filter":
+            if not (data["tipo"] or data["produto"] or data["data_field"]):
                 raise serializers.ValidationError(
                     "Didn't input valid fields for filter."
                 )
+        return data
 
 
-class EstoqueSerializer (serializers.Form):
-    tipo = serializers.CharField(max_length=50)
+class EstoqueSerializer (serializers.Serializer):
+    tipo = serializers.CharField(max_length=50, required=False)
     ingrediente = serializers.CharField(max_length=50, required=False)
-    quantidade = serializers.DecimalField(required=False, decimal_places=3, localize=True)
+    quantidade = serializers.DecimalField(required=False, decimal_places=3, localize=True, max_digits=5)
     data_field = serializers.DateField(required=False)
-    valor = serializers.DecimalField(required=False, decimal_places=2, localize=True)
+    valor = serializers.DecimalField(required=False, decimal_places=2, localize=True, max_digits=5)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request", None)
-        super(ProducaoData, self).__init__(*args, **kwargs)
+        super(EstoqueSerializer, self).__init__(*args, **kwargs)
 
-    def clean(self):
-        validated_data = super(EstoqueSerializer, self).clean()
-        tipo = validated_data.get("tipo")
-        ingrediente = validated_data.get("ingrediente")
-        quantidade = validated_data.get("quantidade")
-        valor = validated_data.get("valor")
+    def validate(self, data):
+        data = super().validate(data)
 
         if self.request.method == "add":
-            if not (tipo and ingrediente and quantidade and valor):
+            if not (data["ingrediente"] and data["quantidade"] and data["valor"]):
                 raise serializers.ValidationError(
                     "Didn't input all fields for add."
                 )
         elif self.request.method == "filter":
-            if quantidade or valor:
+            if data["quantidade"] or data["valor"]:
                 raise serializers.ValidationError(
                     "Didn't input valid fields for filter."
                 )
+        return data
 
 
-class ClienteSerializer (serializers.Form):
+class ClienteSerializer (serializers.Serializer):
     nome = serializers.CharField(max_length=60)
     telefone = serializers.CharField(max_length=20, required=False)
     tipo = serializers.CharField(max_length=2, required=False)
@@ -74,7 +68,7 @@ class ClienteSerializer (serializers.Form):
     referencia = serializers.CharField(max_length=50, required=False)
 
 
-class ClienteSearchSerializer (serializers.Form):
+class ClienteSearchSerializer (serializers.Serializer):
     nome = serializers.CharField(max_length=60, required=False)
     telefone = serializers.CharField(max_length=20, required=False)
 
@@ -90,11 +84,10 @@ class ClienteSearchSerializer (serializers.Form):
         return validated_data
 
 
-class ClienteSelectionSerializer (serializers.Form):
+class ClienteSelectionSerializer (serializers.Serializer):
     cliente = serializers.IntegerField()
 
 
-class Pedido (serializers.Form):
+class Pedido (serializers.Serializer):
     tipo = serializers.CharField(max_length=50)
     produto = serializers.CharField(max_length=50)
-    quantidade = serializers.DecimalField()

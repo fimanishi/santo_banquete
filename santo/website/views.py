@@ -121,18 +121,13 @@ def pedidos(request):
 
 @login_required
 def finalizar_pedido(request):
-    try:
-        referer = request.META['HTTP_REFERER']
-    except KeyError:
-        referer = ""
-    check = re.search(r"finalizar_pedido", referer)
-    if request.method == "POST" and check:
-        pass
-    elif request.method == "POST":
-        pass
+    subtotal = 0
+    for item in request.session["cart"]:
+        subtotal += item["cost"] * item["quantity"]
     context = {}
     context["cliente"] = request.session["cart_user"]
     context["cart"] = request.session["cart"]
+    context["subtotal"] = subtotal
     return TemplateResponse(request, "finalizar_pedido.html", context)
 
 
@@ -154,7 +149,22 @@ def novo_pedido(request):
         form = website.forms.Pedido(request.POST or None)
         if form.is_valid():
             # appends to the cart list a dictionary with the produto_id, nome and quantidade
-            request.session["cart"].append({"product_id": models.Produto.objects.get(nome=form.cleaned_data["produto"]).id, "produto": form.cleaned_data["produto"], "quantity": float(form.cleaned_data["quantidade"])})
+            exists = False
+            if request.session["cart"]:
+                for i in request.session["cart"]:
+                    if i["product_id"] == models.Produto.objects.get(nome=form.cleaned_data["produto"]).id:
+                        i["quantity"] += float(form.cleaned_data["quantidade"])
+                        exists = True
+                        break
+                if not exists:
+                    request.session["cart"].append(
+                        {"product_id": models.Produto.objects.get(nome=form.cleaned_data["produto"]).id,
+                         "produto": form.cleaned_data["produto"], "quantity": float(form.cleaned_data["quantidade"]),
+                         "cost": float(models.Produto.objects.get(nome=form.cleaned_data["produto"]).valor)})
+            else:
+                request.session["cart"].append({"product_id": models.Produto.objects.get(nome=form.cleaned_data["produto"]).id,
+                                            "produto": form.cleaned_data["produto"], "quantity": float(form.cleaned_data["quantidade"]),
+                                            "cost": float(models.Produto.objects.get(nome=form.cleaned_data["produto"]).valor)})
         else:
             # success = 3 means that the Pedido form is invalid and displays a message to the user indicating it
             success = 3
@@ -239,72 +249,6 @@ def escolher_cliente(request):
 def producao(request):
     # success = 1 means that the user just entered the view and should render the initial page for that view
     success = 1
-    # initializes an empty list that will receive filtered items from db
-    filtered = []
-    if request.method == "POST":
-        # gets tipo, produto and quantidade from ProducaoData form
-        form = website.forms.ProducaoData(request.POST or None, request=request)
-        if form.is_valid():
-            print("test")
-            # gets the id of the produto selected on the form
-            product_id = models.Produto.objects.get(nome=form.cleaned_data["produto"])
-            # filters the Quantidade model for items that have the id of the selected produto
-            quantidades = models.Quantidade.objects.filter(produto_id=product_id.id)
-            # loops through the filtererd elements
-            for quantidade in quantidades:
-                # gets that item from the db
-                quantidade_get = models.Quantidade.objects.get(id=quantidade.id)
-                # gets the item from the Ingrediente model using the relational quantidade_id
-                ingredient_to_change = models.Ingrediente.objects.get(id=quantidade_get.ingrediente_id)
-                # subtracts from the estoque of that item the quantidade_unitaria for the product times the quantidade
-                ingredient_to_change.estoque -= quantidade_get.quantidade_unitaria * form.cleaned_data["quantidade"]
-                # saves the Ingrediente db
-                ingredient_to_change.save()
-            # checks to see if the produto was already added to the producao today
-            try:
-                # gets the item
-                check = models.Producao.objects.get(produto_id=product_id.id, data=date.today())
-                # adds to the previous quantidade the quantidade input by the user
-                check.quantidade += form.cleaned_data["quantidade"]
-                # saves the Producao db
-                check.save()
-            # if this produto was not added to the producao today
-            except ObjectDoesNotExist:
-                # adds the produto produced to the Producao model
-                models.Producao.objects.create(produto=product_id, quantidade=form.cleaned_data["quantidade"], usuario = request.user )
-            # success = 2 means that the produto was either update or added successfully
-            success = 2
-        else:
-            # success = 3 means that the form was invalid. displays message to the user
-            success = 3
-    elif request.method == "GET":
-        # gets tipo, produto and data_field from ProducaoData form
-        form = website.forms.ProducaoData(request.GET or None)
-        if form.is_valid():
-            # if the user adds a starting date
-            if form.cleaned_data["data_field"]:
-                # if the user also added a produto
-                if form.cleaned_data["produto"]:
-                    # filters from the Producao model by date and produto
-                    filtered = models.Producao.objects.filter(data__gte = form.cleaned_data["data_field"], produto_id__nome = form.cleaned_data["produto"])
-                # if the user only added the tipo and date
-                elif form.cleaned_data["tipo"]:
-                    # filters from the Producao model by date and tip
-                    filtered = models.Producao.objects.filter(data__gte = form.cleaned_data["data_field"], produto_id__tipo = form.cleaned_data["tipo"])
-            # if the user doesn't provide the date
-            elif not form.cleaned_data["data_field"]:
-                # if the user provided the produto
-                if form.cleaned_data["produto"]:
-                    # filters from the Producao model by produto
-                    filtered = models.Producao.objects.filter(produto_id__nome = form.cleaned_data["produto"])
-                # if the user provided only the tipo
-                elif form.cleaned_data["tipo"]:
-                    # filters from the Producao model by tip
-                    filtered = models.Producao.objects.filter(produto_id__tipo = form.cleaned_data["tipo"])
-            if filtered:
-                success = 4
-            else:
-                success = 5
     # gets all the distinct types of food categories
     types = models.Produto.objects.filter(~Q(tipo="bebida")).distinct("tipo").order_by("tipo")
     # gets all products
@@ -318,7 +262,6 @@ def producao(request):
     # adds the categories
     context["types"] = types
     context["success"] = success
-    context["filtered"] = filtered
     if request.method == "POST":
         return http.HttpResponseRedirect("/producao/")
     else:
