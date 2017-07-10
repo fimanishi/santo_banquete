@@ -1,0 +1,84 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react-dom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/redux/3.7.1/redux.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-redux/5.0.5/react-redux.js"></script>
+
+<script type="text/babel">
+    // component script
+    class List extends React.Component{
+      constructor (props) {
+        super(props);
+      };
+      render() {
+        return (
+          <div>
+            { this.props.results.length !== 0 ? this.props.results.map((i) =>
+              <div key={i.id}>
+                <div className="filtered">
+                  <div className="alert alert-info" role="alert">
+                    <div className="add_flex">
+                      <div className="listing">
+                        <p><strong>Produto:</strong></p>
+                        <p>{ i.produto }</p>
+                      </div>
+                      <div className="listing">
+                        <p><strong>Quantidade:</strong></p>
+                        <p className="align_center">{ i.quantidade }</p>
+                      </div>
+                      <div className="listing">
+                        <p><strong>Data:</strong></p>
+                        <p>{ i.data_output }</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>) : <p></p>}
+          </div>
+        );
+      }
+    }
+
+    // actions
+    function updateFiltered (data) {
+      return {
+        type: 'UPDATE_FILTERED',
+        data: data
+      }
+    }
+
+    // reducers
+    var initialState = [];
+    function filtered (state, action){
+      if(state === undefined){
+        return initialState;
+      }
+      switch (action.type){
+        case 'UPDATE_FILTERED':
+          return action.data;
+        default:
+          return state;
+      }
+    }
+
+    // store
+    var store = Redux.createStore(filtered);
+
+    // redux handling
+    function mapStateToProps (state) {
+      return {
+        results: state
+      }
+    }
+
+    List = ReactRedux.connect(
+      mapStateToProps
+    )(List)
+
+    ReactDOM.render(
+      <ReactRedux.Provider store={store}>
+        <List/>
+      </ReactRedux.Provider>,
+      document.getElementById('result_list')
+    );
+</script>
