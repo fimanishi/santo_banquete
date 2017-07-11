@@ -250,7 +250,7 @@ def producao_add(request):
         # gets tipo, produto and quantidade from ProducaoData form
         serializer = website.serializer.ProducaoSerializer(data=request.data)
         print(serializer)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             # gets the id of the produto selected on the form
             product_id = models.Produto.objects.get(nome=serializer.validated_data["produto"])
             # filters the Quantidade model for items that have the id of the selected produto
@@ -277,11 +277,10 @@ def producao_add(request):
             except ObjectDoesNotExist:
                 # adds the produto produced to the Producao model
                 models.Producao.objects.create(produto=product_id, quantidade=serializer.validated_data["quantidade"], usuario=request.user)
-            # success = 2 means that the produto was either update or added successfully
-            return Response(2)
+            # produto was either update or added successfully
+            return Response("added")
         else:
-            # success = 3 means that the form was invalid. displays message to the user
-            print(serializer.errors)
+            # request was invalid. displays message to the user
             return Response(3)
 
 
@@ -292,7 +291,7 @@ def producao_filter(request):
     filtered = []
     filtered_json = []
     if request.method == "POST":
-        # gets tipo, produto and data_field from ProducaoData form
+        # gets tipo, produto and data_field from ProducaoData serializer
         serializer = website.serializer.ProducaoSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             # if the user adds a starting date
@@ -300,32 +299,48 @@ def producao_filter(request):
                 # if the user also added a produto
                 if serializer.validated_data["produto"]:
                     # filters from the Producao model by date and produto
-                    filtered = models.Producao.objects.filter(data__gte = serializer.validated_data["data_field"], produto_id__nome = serializer.validated_data["produto"])
+                    filtered = models.Producao.objects.filter(data__gte = serializer.validated_data["data_field"], produto_id__nome = serializer.validated_data["produto"]).order_by("-data")
                 # if the user only added the tipo and date
                 elif serializer.validated_data["tipo"]:
                     # filters from the Producao model by date and tip
-                    filtered = models.Producao.objects.filter(data__gte = serializer.validated_data["data_field"], produto_id__tipo = serializer.validated_data["tipo"])
+                    filtered = models.Producao.objects.filter(data__gte = serializer.validated_data["data_field"], produto_id__tipo = serializer.validated_data["tipo"]).order_by("-data")
             # if the user doesn't provide the date
             elif not serializer.validated_data["data_field"]:
                 # if the user provided the produto
                 if serializer.validated_data["produto"]:
                     # filters from the Producao model by produto
-                    filtered = models.Producao.objects.filter(produto_id__nome = serializer.validated_data["produto"])
+                    filtered = models.Producao.objects.filter(produto_id__nome = serializer.validated_data["produto"]).order_by("-data")
                 # if the user provided only the tipo
                 elif serializer.validated_data["tipo"]:
                     # filters from the Producao model by tip
-                    filtered = models.Producao.objects.filter(produto_id__tipo = serializer.validated_data["tipo"])
+                    filtered = models.Producao.objects.filter(produto_id__tipo = serializer.validated_data["tipo"]).order_by("-data")
             if filtered:
                 for i in filtered:
-                    filtered_json.append({"quantidade": float(i.quantidade), "id": i.produto.id, "produto": i.produto.nome, "data_output": i.data})
+                    filtered_json.append({"quantidade": float(i.quantidade), "id": i.id, "produto": i.produto.nome, "data_output": i.data})
                 print(filtered_json)
                 s = website.serializer.ProducaoSerializer(filtered_json, many=True)
                 return Response(s.data)
             else:
-                return Response(5)
+                return Response("empty")
         else:
             return Response(3)
 
+@api_view(["POST"])
+@login_required
+def producao_delete(request):
+    if request.method == "POST":
+        # gets id from ProducaoData serializer
+        serializer = website.serializer.ProducaoSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            if serializer.validated_data["id"] == 0:
+                return Response(False)
+            else:
+                try:
+                    print("test")
+                    models.Producao.objects.filter(id=serializer.validated_data["id"]).delete()
+                    return Response(True)
+                except ObjectDoesNotExist:
+                    return Response(False)
 
 @api_view(["POST"])
 @login_required

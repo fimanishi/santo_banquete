@@ -18,16 +18,19 @@ class ProducaoSerializer (serializers.Serializer):
 
     def validate(self, data):
         data = super().validate(data)
-        if data["action"] == "add":
-            if not (data["produto"] and data["quantidade"]):
-                raise serializers.ValidationError(
-                    "Didn't input all fields for add."
-                )
-        elif data["action"] == "filter":
-            if not (data["tipo"] or data["produto"] or data["data_field"]):
-                raise serializers.ValidationError(
-                    "Didn't input valid fields for filter."
-                )
+        try:
+            if data["action"] == "add":
+                if not (data["produto"] and data["quantidade"]):
+                    raise serializers.ValidationError(
+                        "Didn't input all fields for add."
+                    )
+            elif data["action"] == "filter":
+                if not (data["tipo"] or data["produto"] or data["data_field"]):
+                    raise serializers.ValidationError(
+                        "Didn't input valid fields for filter."
+                    )
+        except KeyError:
+            pass
         return data
 
 
