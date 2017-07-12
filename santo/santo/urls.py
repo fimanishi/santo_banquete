@@ -32,6 +32,7 @@ urlpatterns = [
     url(r'^producao/filter/$', website.views_api.producao_filter, name="producao_filter"),
     url(r'^producao/delete/$', website.views_api.producao_delete, name="producao_delete"),
     url(r'^estoque/add/$', website.views_api.estoque_add, name="estoque_add"),
+    url(r'^estoque/filter/$', website.views_api.estoque_filter, name="estoque_filter"),
     url(r'^producao/$', website.views.producao, name="producao"),
     url(r'^estoque/$', website.views.estoque, name="estoque"),
     url(r'^adicionar_cliente/$', website.views.adicionar_cliente, name="adicionar_cliente"),

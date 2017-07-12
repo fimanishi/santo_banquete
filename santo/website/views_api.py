@@ -249,7 +249,6 @@ def producao_add(request):
     if request.method == "POST":
         # gets tipo, produto and quantidade from ProducaoData form
         serializer = website.serializer.ProducaoSerializer(data=request.data)
-        print(serializer)
         if serializer.is_valid(raise_exception=True):
             # gets the id of the produto selected on the form
             product_id = models.Produto.objects.get(nome=serializer.validated_data["produto"])
@@ -284,7 +283,7 @@ def producao_add(request):
             return Response(3)
 
 
-# to be completed
+# to be commented
 @api_view(["POST"])
 @login_required
 def producao_filter(request):
@@ -296,6 +295,7 @@ def producao_filter(request):
         if serializer.is_valid(raise_exception=True):
             # if the user adds a starting date
             if serializer.validated_data["data_field"]:
+                print(serializer.validated_data["data_field"])
                 # if the user also added a produto
                 if serializer.validated_data["produto"]:
                     # filters from the Producao model by date and produto
@@ -304,6 +304,9 @@ def producao_filter(request):
                 elif serializer.validated_data["tipo"]:
                     # filters from the Producao model by date and tip
                     filtered = models.Producao.objects.filter(data__gte = serializer.validated_data["data_field"], produto_id__tipo = serializer.validated_data["tipo"]).order_by("-data")
+                # if the user only filtered by date
+                else:
+                    filtered = models.Producao.objects.filter(data__gte=serializer.validated_data["data_field"]).order_by("-data")
             # if the user doesn't provide the date
             elif not serializer.validated_data["data_field"]:
                 # if the user provided the produto
@@ -317,7 +320,6 @@ def producao_filter(request):
             if filtered:
                 for i in filtered:
                     filtered_json.append({"quantidade": float(i.quantidade), "id": i.id, "produto": i.produto.nome, "data_output": i.data})
-                print(filtered_json)
                 s = website.serializer.ProducaoSerializer(filtered_json, many=True)
                 return Response(s.data)
             else:
@@ -336,8 +338,20 @@ def producao_delete(request):
                 return Response(False)
             else:
                 try:
-                    print("test")
                     models.Producao.objects.filter(id=serializer.validated_data["id"]).delete()
+                    product_id = models.Produto.objects.get(nome=serializer.validated_data["produto"])
+                    # filters the Quantidade model for items that have the id of the selected produto
+                    quantidades = models.Quantidade.objects.filter(produto_id=product_id.id)
+                    # loops through the filtererd elements
+                    for quantidade in quantidades:
+                        # gets that item from the db
+                        quantidade_get = models.Quantidade.objects.get(id=quantidade.id)
+                        # gets the item from the Ingrediente model using the relational quantidade_id
+                        ingredient_to_change = models.Ingrediente.objects.get(id=quantidade_get.ingrediente_id)
+                        # subtracts from the estoque of that item the quantidade_unitaria for the product times the quantidade
+                        ingredient_to_change.estoque += quantidade_get.quantidade_unitaria * serializer.validated_data["quantidade"]
+                        # saves the Ingrediente db
+                        ingredient_to_change.save()
                     return Response(True)
                 except ObjectDoesNotExist:
                     return Response(False)
@@ -346,46 +360,71 @@ def producao_delete(request):
 @login_required
 def estoque_add(request):
     if request.method == "POST":
-        serializer = website.serializer.EstoqueSerializer(data=request.data, request=request)
-        if serializer.is_valid():
+        # gets id, tipo, ingrediente, quantidade, valor, data and action from EstoqueSerializer
+        serializer = website.serializer.EstoqueSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # gets the object that matches the ingrediente selection
             ingredient_id = models.Ingrediente.objects.get(nome=serializer.validated_data["ingrediente"])
-            # function to update the stock
+            # updates quantidada in estoque
             ingredient_id.estoque += serializer.validated_data["quantidade"]
+            # updates quantidade in total_comprado
             ingredient_id.total_comprado += serializer.validated_data["quantidade"]
+            # updates the date in ultima_compra
             ingredient_id.ultima_compra = date.today()
+            # updates valor in valor_comprado
             ingredient_id.valor_comprado += serializer.validated_data["valor"]
+            # updates the calculation of preco_medio
             try:
                 ingredient_id.preco_medio = ingredient_id.valor_comprado / ingredient_id.total_comprado
             except ZeroDivisionError:
                 ingredient_id.preco_medio = 0
 
             ingredient_id.save()
-            return Response(2)
+            return Response("added")
         else:
             return Response(3)
 
 
 # to be completed
-@api_view(["GET"])
+@api_view(["POST"])
 @login_required
 def estoque_filter(request):
     # handling forms
-    filtered =[]
-    if request.method == "GET":
-        form = website.forms.EstoqueData(request.GET or None)
-        if form.is_valid():
-            if form.cleaned_data["data_field"]:
-                if form.cleaned_data["ingrediente"]:
-                    filtered = models.Ingrediente.objects.filter(ultima_compra__gte = form.cleaned_data["data_field"], nome = form.cleaned_data["ingrediente"])
-                elif form.cleaned_data["tipo"]:
-                    filtered = models.Ingrediente.objects.filter(ultima_compra__gte = form.cleaned_data["data_field"], tipo = form.cleaned_data["tipo"])
-            elif not form.cleaned_data["data_field"]:
-                if form.cleaned_data["ingrediente"]:
-                    filtered = models.Ingrediente.objects.filter(nome = form.cleaned_data["ingrediente"])
-                elif form.cleaned_data["tipo"]:
-                    filtered = models.Ingrediente.objects.filter(tipo = form.cleaned_data["tipo"])
+    filtered = []
+    filtered_json = []
+    if request.method == "POST":
+        serializer = website.serializer.EstoqueSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # if the user filters by date
+            if serializer.validated_data["data_field"]:
+                # if the user also filters by ingrediente
+                if serializer.validated_data["ingrediente"]:
+                    # filters from the Ingrediente model by date and ingrediente
+                    filtered = models.Ingrediente.objects.filter(ultima_compra__gte = serializer.validated_data["data_field"], nome = serializer.validated_data["ingrediente"]).order_by("-ultima_compra")
+                # if the user also filters by tipo
+                elif serializer.validated_data["tipo"]:
+                    # filters from the Ingrediente model by date and tipo
+                    filtered = models.Ingrediente.objects.filter(ultima_compra__gte = serializer.validated_data["data_field"], tipo = serializer.validated_data["tipo"]).order_by("-ultima_compra")
+                # if the user only filtered by date
+                else:
+                    filtered = models.Ingrediente.objects.filter(ultima_compra__gte=serializer.validated_data["data_field"]).order_by("-ultima_compra")
+            # if the user doesn't provide the date
+            elif not serializer.validated_data["data_field"]:
+                # if the user filtered by ingrediente
+                if serializer.validated_data["ingrediente"]:
+                    # filters from the Ingrediente model by ingrediente
+                    filtered = models.Ingrediente.objects.filter(nome = serializer.validated_data["ingrediente"])
+                # if the user filtered by tipo
+                elif serializer.validated_data["tipo"]:
+                    # filters from the Ingrediente model by tipo
+                    filtered = models.Ingrediente.objects.filter(tipo = serializer.validated_data["tipo"])
             if filtered:
-                success = 4
+                for i in filtered:
+                    filtered_json.append({"estoque": float(i.estoque), "id": i.id, "ingrediente": i.nome,
+                                          "data_output": i.ultima_compra, "unidade": i.unidade})
+                s = website.serializer.ProducaoSerializer(filtered_json, many=True)
+                return Response(s.data)
             else:
-                success = 5
+                return Response("empty")
+
 
