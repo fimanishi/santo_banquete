@@ -24,31 +24,6 @@ from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 
 
-# login page, only accessible when the user is not logged in
-def index(request):
-    # gets the username and password from UserForm
-    form = website.forms.UserForm(request.POST or None)
-    if request.method == "POST":
-        # checks if username and password are valid inputs
-        if form.is_valid():
-            # authenticates the username and password based on the records
-            user = authenticate(request, username=form.cleaned_data["user_name"], password=form.cleaned_data["user_password"])
-            # checks if the user passed authentication
-            if user is not None:
-                # logs in the user and redirects to the authenticated page
-                login(request, user)
-                return http.HttpResponseRedirect("/authenticated/")
-    context = {}
-    return TemplateResponse(request, "index.html", context)
-
-
-# menu page that routes the user to a specific application
-@login_required
-def authenticated(request):
-    context = {}
-    return TemplateResponse(request, "authenticated.html", context)
-
-
 # page to add a new client. does the verification of the fields and adds to the database
 # required inputs: nome completo and cidade
 @login_required
@@ -197,50 +172,37 @@ def novo_pedido(request):
         return TemplateResponse(request, "novo_pedido.html", context)
 
 
+@api_view(["POST"])
 @login_required
-def escolher_cliente(request):
-    # initializes an empty cart list in the session as the view will redirect to a new order
-    request.session["cart"] = []
-    # initializes an empty cart_user dictionary in the session as the view will redirect to a new order
-    request.session["cart_user"] = {}
+def escolher_cliente_filter(request):
+    # # initializes an empty cart list in the session as the view will redirect to a new order
+    # request.session["cart"] = []
+    # # initializes an empty cart_user dictionary in the session as the view will redirect to a new order
+    # request.session["cart_user"] = {}
     # initializes an empty list that will receive filtered items from db
     filtered = []
-    # success = 1 means that the user just entered the view and should render the initial page for that view
-    success = 1
-    # tries to assign to the variable referer the path that refered this view
-    try:
-        referer = request.META['HTTP_REFERER']
-    # if there's no referer, assigns an empty string
-    except KeyError:
-        referer = ""
-    # checks if the current view was the referer
-    check = re.search(r"escolher_cliente", referer)
+    filtered_json = []
     # if the current view was the referer
-    if request.method == "GET" and check:
+    if request.method == "POST":
         # gets cliente from ClienteSearch form
-        form = website.forms.ClienteSearch(request.GET or None)
-        if form.is_valid():
-            # success = 2 means that the validation passed and matches to the filter were found
-            success = 2
+        serializer = website.serializer.ClienteSearchSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
             # if the user inputs nome and telefone, filters for a match for both
-            if form.cleaned_data["nome"] and form.cleaned_data["telefone"]:
-                filtered = models.Cliente.objects.filter(nome__icontains=form.cleaned_data["nome"], telefone=form.cleaned_data["telefone"])
+            if serializer.validated_data["nome"] and serializer.validated_data["telefone"]:
+                filtered = models.Cliente.objects.filter(nome__icontains=serializer.validated_data["nome"], telefone=serializer.validated_data["telefone"])
             # if the user inputs nome, filters for a match that contains nome
-            elif form.cleaned_data["nome"]:
-                filtered = models.Cliente.objects.filter(nome__icontains=form.cleaned_data["nome"])
+            elif serializer.validated_data["nome"]:
+                filtered = models.Cliente.objects.filter(nome__icontains=serializer.validated_data["nome"])
             # if the user inputs telefone, filters for a match for the telefone
-            elif form.cleaned_data["telefone"]:
-                filtered = models.Cliente.objects.filter(telefone=form.cleaned_data["telefone"])
-            # if no matches were found
-            if not filtered:
-                # success = 3 means that no matches were found and display a message indicating it
-                success = 3
-        else:
-            # success = 4 means that the form ClienteSearch is not valid. displays a message indicating it to the user
-            success = 4  
-    # adds the filtered list and success status to the django template
-    context = {"filtered": filtered, "success": success}
-    return TemplateResponse(request, "escolher_cliente.html", context)
+            elif serializer.validated_data["telefone"]:
+                filtered = models.Cliente.objects.filter(telefone=serializer.validated_data["telefone"])
+            if filtered:
+                for i in filtered:
+                    filtered_json.append({"nome": i.nome.title(), "telefone": i.telefone})
+                s = website.serializer.ClienteSearchSerializer(filtered_json, many=True)
+                return Response(s.data)
+            else:
+                return Response("empty")
 
 
 @api_view(["POST"])

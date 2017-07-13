@@ -74,19 +74,17 @@ class ClienteSerializer (serializers.Serializer):
 
 
 class ClienteSearchSerializer (serializers.Serializer):
-    nome = serializers.CharField(max_length=60, required=False)
-    telefone = serializers.CharField(max_length=20, required=False)
+    nome = serializers.CharField(max_length=60, required=False, allow_blank=True)
+    telefone = serializers.CharField(max_length=20, required=False, allow_blank=True)
 
     def validate(self, data):
-        validated_data = super(ClienteSearchSerializer, self).validate(data)
-        nome = validated_data.get("nome")
-        telefone = validated_data.get("telefone")
+        data = super().validate(data)
 
-        if not (nome or telefone):
+        if not (data["nome"] or data["telefone"]):
             raise serializers.ValidationError(
                 "Needs to input at least one field."
             )
-        return validated_data
+        return data
 
 
 class ClienteSelectionSerializer (serializers.Serializer):

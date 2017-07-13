@@ -39,6 +39,7 @@ urlpatterns = [
     url(r'^adicionar_cliente/$', website.views.adicionar_cliente, name="adicionar_cliente"),
     url(r'^novo_pedido/$', website.views.novo_pedido, name="novo_pedido"),
     url(r'^escolher_cliente/$', website.views.escolher_cliente, name="escolher_cliente"),
+    url(r'^escolher_cliente/filter/$', website.views_api.escolher_cliente_filter, name="escolher_cliente_filter"),
     url(r'^finalizar_pedido/delivery/$', website.views_api.finalizar_pedido_delivery, name="finalizar_pedido_delivery"),
     url(r'^finalizar_pedido/$', website.views.finalizar_pedido, name="finalizar_pedido"),
 

@@ -17,7 +17,7 @@
   <div class="my_menu">
     <div id="adicionar_message"><h3>Escolha o Cliente</h3></div>
   </div>
-  <form action="./" method="GET">
+  <form onsubmit="return validateForm()">
     {% csrf_token %}
     <div style="text-align: center;" class="my_menu2">
       <h4>Insira nome e/ou telefone:</h4>
@@ -25,7 +25,7 @@
     <div class="my_menu2">
       <div class="long-field input-group">
         <p>Nome:</p>
-        <input type="text" class="field_sizing form-control" placeholder="Nome" aria-describedby="basic-addon1" name="nome">
+        <input id="nome" type="text" class="field_sizing form-control" placeholder="Nome" aria-describedby="basic-addon1" name="nome">
       </div>
     </div>
     <div class="my_menu2">
@@ -38,6 +38,8 @@
       </div>
     </div>
   </form>
+  {# placeholder for react results #}
+  <div id="result_list"></div>
   {% if success == 2 %}
   <div>
     <form action="/novo_pedido/" name="chooseClient" method="GET">
@@ -89,6 +91,7 @@
 {% block script %}
   <script src="/static/js/js/bootstrap-select.min.js"></script>
   <script src="/static/js/js_datepicker/bootstrap-datepicker.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
   <script>
     $('.datepicker').datepicker();
     // creates an object with the types as keys and products as values
@@ -116,27 +119,35 @@
 
     function validateForm() {
       var check = document.activeElement.value;
-      // var list = ["Tipo", "Produto", "Quantidade", "Data"];
-      var missing = false;
-      if (check === "add"){
-        var qtd = document.getElementById("quantidade").value;
-        var pdt = document.getElementById("product_list").value;
-        var confirmProduct = confirm("Você deseja adicionar o produto abaixo?\nProduto: " + pdt + "\nQuantidade: " + qtd);
-        if (confirmProduct){
-          $("#producao_form").attr("method", "POST");
-          return true;
-        }
-        else{
-          return false;
+      if (check === "filter"){
+        var data = {};
+        data.nome = document.getElementById("nome").value;
+        data.telefone = document.getElementById("telefone").value;
+        if (data.nome || data.telefone){
+          axios.post("/escolher_cliente/filter/", data)
+            .then(function(result){
+              try {
+                if(result.data === "empty"){
+                  console.log("empty");
+{#                  store.dispatch(updateFiltered([], "empty"));#}
+                }
+                else {
+                  console.log(result.data);
+{#                  store.dispatch(updateFiltered(result.data, "list"));#}
+                }
+              } catch (e) {
+                console.error(e);
+              }
+
+            })
+            .catch(function(error){
+{#              store.dispatch(updateFiltered([], "fail"));#}
+              console.log(error);
+            })
         }
       }
-      else if (check === "filter"){
-        $("#producao_form").attr("method", "GET");
-        return true;
-      }
+      return false;
     }
-
-
 
     function brPhoneStyle(event){
       var input = document.getElementById("telefone").value.replace(/\D/g, "");
