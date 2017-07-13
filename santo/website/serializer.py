@@ -39,10 +39,11 @@ class EstoqueSerializer (serializers.Serializer):
     data_output = serializers.DateField(required=False, format="%d/%m/%Y")
     tipo = serializers.CharField(max_length=50, required=False, allow_blank=True)
     ingrediente = serializers.CharField(max_length=50, required=False, allow_blank=True)
-    quantidade = serializers.DecimalField(required=False, decimal_places=2, localize=True, max_digits=5)
+    quantidade = serializers.DecimalField(required=False, decimal_places=3, localize=True, max_digits=5)
     data_field = serializers.DateField(required=False, input_formats=["%d/%m/%Y", ""])
     action = serializers.CharField(max_length=10, required=False)
     valor = serializers.DecimalField(required=False, decimal_places=2, localize=True, max_digits=5)
+    estoque = serializers.DecimalField(required=False, decimal_places=3, localize=True, max_digits=5)
 
     def validate(self, data):
         data = super().validate(data)

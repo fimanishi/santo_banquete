@@ -356,6 +356,7 @@ def producao_delete(request):
                 except ObjectDoesNotExist:
                     return Response(False)
 
+
 @api_view(["POST"])
 @login_required
 def estoque_add(request):
@@ -381,8 +382,6 @@ def estoque_add(request):
 
             ingredient_id.save()
             return Response("added")
-        else:
-            return Response(3)
 
 
 # to be completed
@@ -396,35 +395,52 @@ def estoque_filter(request):
         serializer = website.serializer.EstoqueSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             # if the user filters by date
-            if serializer.validated_data["data_field"]:
+            print(serializer.validated_data["data_field"])
+            if serializer.validated_data["data_field"] > date(1900, 1, 1):
                 # if the user also filters by ingrediente
                 if serializer.validated_data["ingrediente"]:
                     # filters from the Ingrediente model by date and ingrediente
-                    filtered = models.Ingrediente.objects.filter(ultima_compra__gte = serializer.validated_data["data_field"], nome = serializer.validated_data["ingrediente"]).order_by("-ultima_compra")
+                    filtered = models.Ingrediente.objects.filter(
+                        ultima_compra__gte=serializer.validated_data["data_field"],
+                        nome=serializer.validated_data["ingrediente"]).order_by("-ultima_compra")
                 # if the user also filters by tipo
                 elif serializer.validated_data["tipo"]:
                     # filters from the Ingrediente model by date and tipo
-                    filtered = models.Ingrediente.objects.filter(ultima_compra__gte = serializer.validated_data["data_field"], tipo = serializer.validated_data["tipo"]).order_by("-ultima_compra")
+                    filtered = models.Ingrediente.objects.filter(ultima_compra__gte=serializer.validated_data["data_field"], tipo = serializer.validated_data["tipo"]).order_by("-ultima_compra")
                 # if the user only filtered by date
                 else:
                     filtered = models.Ingrediente.objects.filter(ultima_compra__gte=serializer.validated_data["data_field"]).order_by("-ultima_compra")
             # if the user doesn't provide the date
-            elif not serializer.validated_data["data_field"]:
+            else:
+                print("test")
                 # if the user filtered by ingrediente
                 if serializer.validated_data["ingrediente"]:
                     # filters from the Ingrediente model by ingrediente
-                    filtered = models.Ingrediente.objects.filter(nome = serializer.validated_data["ingrediente"])
+                    filtered = models.Ingrediente.objects.filter(nome = serializer.validated_data["ingrediente"]).order_by("nome")
                 # if the user filtered by tipo
                 elif serializer.validated_data["tipo"]:
                     # filters from the Ingrediente model by tipo
-                    filtered = models.Ingrediente.objects.filter(tipo = serializer.validated_data["tipo"])
+                    filtered = models.Ingrediente.objects.filter(tipo = serializer.validated_data["tipo"]).order_by("nome")
             if filtered:
                 for i in filtered:
-                    filtered_json.append({"estoque": float(i.estoque), "id": i.id, "ingrediente": i.nome,
+                    filtered_json.append({"estoque": i.estoque, "id": i.id, "ingrediente": i.nome,
                                           "data_output": i.ultima_compra, "unidade": i.unidade})
-                s = website.serializer.ProducaoSerializer(filtered_json, many=True)
+                s = website.serializer.EstoqueSerializer(filtered_json, many=True)
                 return Response(s.data)
             else:
                 return Response("empty")
 
 
+@api_view(["POST"])
+@login_required
+def estoque_update(request):
+    if request.method == "POST":
+        # gets id and new estoque value from EstoqueSerializer
+        serializer = website.serializer.EstoqueSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # gets the object that matches the ingrediente selection
+            ingredient_id = models.Ingrediente.objects.get(id=serializer.validated_data["id"])
+            # updates quantidada in estoque
+            ingredient_id.estoque = serializer.validated_data["estoque"]
+            ingredient_id.save()
+            return Response("update")

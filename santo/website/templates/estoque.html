@@ -5,7 +5,7 @@
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css_datepicker/bootstrap-datepicker.min.css">
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css/bootstrap-select.min.css" />
   <link rel="stylesheet" type="text/css" href="/static/css/estoque.css" />
-  <link rel="stylesheet" type="text/css" href="/static/css/producao_react/main.a8a4ffdc.css"/>
+  <link rel="stylesheet" type="text/css" href="/static/css/producao_react/main.affb6591.css"/>
 
 {% endblock %}
 
@@ -16,6 +16,9 @@
 {% endblock %}
 
 {% block content %}
+  <div class="my_menu">
+    <div id="adicionar_message"><h3>Estoque</h3><br/></div>
+  </div>
   <div class="my_menu">
     <form id="stock_form" action="./" onsubmit="return validateForm()" method="">
       {% csrf_token %}
@@ -93,44 +96,6 @@
   </div>
   {# placeholder for react results #}
   <div id="result_list"></div>
-  {% if success == 2 %}
-  <div class="message">
-    <div class="alert alert-success" role="alert">Ingrediente adicionado com sucesso</div>
-  </div>
-  {% elif success == 3 %}
-  <div class="message">
-    <div class="alert alert-danger" role="alert">Selecione tipo, ingrediente, quantidade e valor</div>
-  </div>
-  {% elif success == 4 %}
-  <div>
-    <form name="toDelete" method="POST" onsubmit="return false;">
-      {% for i in filtered %}
-          <div class="filtered">
-            <div class="alert alert-info" role="alert">
-              <div style="display: flex;">
-                <div class="listing">
-                  <p><strong>Ingrediente:</strong></p>
-                  <p>{{ i.nome }}</p>
-                </div>
-                <div class="listing">
-                  <p><strong>Estoque:</strong></p>
-                  <p>{{ i.estoque }}</p>
-                </div>
-                <div class="listing">
-                  <p><strong>Última compra:</strong></p>
-                  <p>{{ i.ultima_compra}}<button type="submit" class="delete_button glyphicon glyphicon-remove" aria-hidden="true" value={{ i.id }} onclick="removeItem(event)"></button></p>
-                </div>
-              </div>
-            </div>
-          </div>
-      {% endfor %}
-    </form>
-  </div>
-  {% elif success == 5 %}
-    <div class="message">
-        <div class="alert alert-danger" role="alert">Nenhum produto encontrado</div>
-    </div>
-  {% endif %}
 
 {% endblock %}
 
@@ -139,7 +104,7 @@
   <script src="/static/js/js/bootstrap-select.min.js"></script>
   <script src="/static/js/js_datepicker/bootstrap-datepicker.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
-  <script src="/static/js/estoque_react/main.b42040fc.js"></script>
+  <script src="/static/js/estoque_react/main.c7cee955.js"></script>
   <script>
 
     $('.datepicker').datepicker();
@@ -183,22 +148,23 @@
         var qtd = document.getElementById("quantidade_value").value;
         var igt = document.getElementById("ingredient_list").value;
         var vlr = document.getElementById("valor").value;
-        if (qtd && igt && vlr){
+        if (qtd && igt && vlr && check){
           $("#stock_form").attr("method", "POST");
           document.getElementById("quantidade_modal").innerHTML = qtd;
           document.getElementById("ingrediente_modal").innerHTML = igt;
           document.getElementById("valor_modal").innerHTML = vlr;
           $("#myModal").modal();
         }
-{#          else statement to be included here to display the failure to complete all fields#}
+        else{
+          store.dispatch(updateFiltered([], "add"));
+        }
+
       }
       else if (check === "filter"){
         var data = {};
         data.tipo = document.getElementById("ingredient_type").value;
         data.ingrediente = document.getElementById("ingredient_list").value;
         data.data_field = document.getElementById("date_field").value;
-        data.quantidade = document.getElementById("quantidade_value").value;
-        data.valor = document.getElementById("valor").value;
         data.action = "filter";
         $('.selectpicker').selectpicker('val', '');
         $('.datepicker').datepicker('update', '');
@@ -211,7 +177,6 @@
                 }
                 else {
                   store.dispatch(updateFiltered(result.data, "list"));
-                  console.log(result.data);
                 }
               } catch (e) {
                 console.error(e);
@@ -219,8 +184,7 @@
 
             })
             .catch(function(error){
-              console.error(error);
-              //console.error(error.response.data);
+              store.dispatch(updateFiltered([], "fail"));
             })
         }
       }
@@ -237,15 +201,10 @@
       document.getElementById("valor").value = "";
       axios.post("/estoque/add/", data)
         .then(function(result){
-          if(result.data === 3){
-            console.log("not added");
-          }
-          else if(result.data === 2){
-            console.log("added");
-          }
+          store.dispatch(updateFiltered([], result.data));
         })
         .catch(function(error){
-          console.error(error);
+          store.dispatch(updateFiltered([], "fail"));
         });
       }
 
@@ -262,10 +221,6 @@
         $("#unidade").text(unidade);
       });
     }
-
-
-
-
 
   </script>
 {% endblock %}
