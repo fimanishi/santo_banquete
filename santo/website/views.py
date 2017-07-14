@@ -270,44 +270,6 @@ def producao(request):
 
 @login_required
 def estoque(request):
-    # handling forms
-    success = 1
-    filtered = []
-    if request.method == "POST":
-        form = website.forms.EstoqueData(request.POST or None)
-        if form.is_valid():
-            ingredient_id = models.Ingrediente.objects.get(nome=form.cleaned_data["ingrediente"])
-            # function to update the stock
-            ingredient_id.estoque += form.cleaned_data["quantidade"]
-            ingredient_id.total_comprado += form.cleaned_data["quantidade"]
-            ingredient_id.ultima_compra = date.today()
-            ingredient_id.valor_comprado += form.cleaned_data["valor"]
-            try:
-                ingredient_id.preco_medio = ingredient_id.valor_comprado / ingredient_id.total_comprado
-            except ZeroDivisionError:
-                ingredient_id.preco_medio = 0
-
-            ingredient_id.save()
-            success = 2
-        else:
-            success = 3
-    elif request.method == "GET":
-        form = website.forms.EstoqueData(request.GET or None)
-        if form.is_valid():
-            if form.cleaned_data["data_field"]:
-                if form.cleaned_data["ingrediente"]:
-                    filtered = models.Ingrediente.objects.filter(ultima_compra__gte = form.cleaned_data["data_field"], nome = form.cleaned_data["ingrediente"])
-                elif form.cleaned_data["tipo"]:
-                    filtered = models.Ingrediente.objects.filter(ultima_compra__gte = form.cleaned_data["data_field"], tipo = form.cleaned_data["tipo"])
-            elif not form.cleaned_data["data_field"]:
-                if form.cleaned_data["ingrediente"]:
-                    filtered = models.Ingrediente.objects.filter(nome = form.cleaned_data["ingrediente"])
-                elif form.cleaned_data["tipo"]:
-                    filtered = models.Ingrediente.objects.filter(tipo = form.cleaned_data["tipo"])
-            if filtered:
-                success = 4
-            else:
-                success = 5
     # gets all the distinct types of ingredient categories
     types = models.Ingrediente.objects.all().distinct("tipo").order_by("tipo")
     # gets all products
@@ -320,19 +282,64 @@ def estoque(request):
             context['ingredients'][j.tipo] = models.Ingrediente.objects.filter(tipo=j.tipo)
     # adds the categories
     context["types"] = types
-    context["success"] = success
-    context["filtered"] = filtered
 
     return TemplateResponse(request, "estoque.html", context)
 
 
-def test(request):
-    produto = get_object_or_404(models.Ingrediente, id=1)
-    print(produto.nome)
-    print(produto.estoque)
-    print(produto.estoque)
-    context = {}
-    return TemplateResponse(request, "index.html", context)
+@login_required
+def estoque_selection(request):
+    # gets all the distinct types of ingredient categories
+    types = models.Ingrediente.objects.all().distinct("tipo").order_by("tipo")
+    # gets all products
+    ingredients = models.Ingrediente.objects.all()
+    # creates a dictionary to store all categories and products
+    context = {'ingredients': {}}
+    # dynamically creates the dictionary containing categories and products
+    for i in ingredients:
+        for j in types:
+            context['ingredients'][j.tipo] = models.Ingrediente.objects.filter(tipo=j.tipo)
+    # adds the categories
+    context["types"] = types
+
+    return TemplateResponse(request, "estoque_selection.html", context)
+
+
+@login_required
+def escolher_fornecedor(request):
+    # initializes an empty cart list in the session as the view will redirect to a new order
+    request.session["cart"] = []
+    # initializes an empty cart_user dictionary in the session as the view will redirect to a new order
+    request.session["cart_supplier"] = {}
+    # initializes an empty list that will receive filtered items from db
+    filtered = []
+    # if the current view was the referer
+    if request.method == "GET":
+        # gets cliente from ClienteSearch form
+        form = website.forms.ClienteSearch(request.GET or None)
+        if form.is_valid():
+            # success = 2 means that the validation passed and matches to the filter were found
+            success = 2
+            # if the user inputs nome and telefone, filters for a match for both
+            if form.cleaned_data["nome"] and form.cleaned_data["telefone"]:
+                filtered = models.Cliente.objects.filter(nome__icontains=form.cleaned_data["nome"],
+                                                         telefone=form.cleaned_data["telefone"])
+            # if the user inputs nome, filters for a match that contains nome
+            elif form.cleaned_data["nome"]:
+                filtered = models.Cliente.objects.filter(nome__icontains=form.cleaned_data["nome"])
+            # if the user inputs telefone, filters for a match for the telefone
+            elif form.cleaned_data["telefone"]:
+                filtered = models.Cliente.objects.filter(telefone=form.cleaned_data["telefone"])
+            # if no matches were found
+            if not filtered:
+                # success = 3 means that no matches were found and display a message indicating it
+                success = 3
+        else:
+            # success = 4 means that the form ClienteSearch is not valid. displays a message indicating it to the user
+            success = 4
+            # adds the filtered list and success status to the django template
+    context = {"filtered": filtered, "success": success}
+    return TemplateResponse(request, "escolher_fornecedor.html")
+
 # def hello(request):
 #     # form  = website.forms.NameForm(request.POST or None)
 #     #

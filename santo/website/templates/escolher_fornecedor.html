@@ -1,0 +1,169 @@
+{% extends "base.html" %}{% load static %}
+
+{% block css %}
+  <link rel="stylesheet" type="text/css" href="/static/css/dist/css_datepicker/bootstrap-datepicker.min.css">
+  <link rel="stylesheet" type="text/css" href="/static/css/dist/css/bootstrap-select.min.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/adicionar_cliente.css" />
+
+{% endblock %}
+
+
+{% block loggedin %}
+  <li><a>Usuário: {{ request.user.username }}</a></li>
+  <li><a href="/logout" style="text-decoration: underline;">Sair</a></li>
+{% endblock %}
+
+{% block content %}
+  <div class="my_menu">
+    <div id="adicionar_message"><h3>Escolha o Fornecedor</h3></div>
+  </div>
+  <form onsubmit="return validateForm()">
+    {% csrf_token %}
+    <div style="text-align: center;" class="my_menu2">
+      <h4>Insira nome e/ou telefone:</h4>
+    </div>
+    <div class="my_menu2">
+      <div class="long-field input-group">
+        <p>Nome:</p>
+        <input id="nome" type="text" class="field_sizing form-control" placeholder="Nome" aria-describedby="basic-addon1" name="nome">
+      </div>
+    </div>
+    <div class="my_menu2">
+      <div style="width:300px;" class="input-group">
+        <p>Telefone:</p>
+        <div style="display: flex; justify-content: space-between;">
+          <input id="telefone" style="width:140px;" type="text" class="field_sizing form-control" placeholder="Telefone" aria-describedby="basic-addon1" name="telefone" onkeypress='return event.charCode >= 48 && event.charCode <= 57' onchange="brPhoneStyle(event)">
+          <button style="width: 120px;" type="submit" class="btn btn-primary" name="button" value="filter">Procurar</button>
+        </div>
+      </div>
+    </div>
+  </form>
+  {# placeholder for react results #}
+  <div id="result_list"></div>
+  {% if success == 2 %}
+  <div>
+    <form action="/novo_pedido/" name="chooseClient" method="GET">
+      {% csrf_token %}
+      {% for i in filtered %}
+        <div class="filtered">
+          <div class="alert alert-info" role="alert">
+            <div style="display: flex;">
+              <div class="listing">
+                <p><strong>Nome:</strong></p>
+                <p>{{ i.nome|title }}</p>
+              </div>
+              <div class="listing">
+                <p><strong>Telefone:</strong></p>
+                <p>{{ i.telefone }}<input style="float:right; margin-top: 0" type="radio" name="cliente" value={{ i.id }}></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+      <div class="my_menu2">
+        <button type="submit" class="btn btn-primary" name="button" value="choose">Escolher cliente</button>
+      </div>
+    </form>
+    <br>
+    <form action="/adicionar_cliente/" method="GET">
+      <div class="my_menu2">
+        <button type="submit" class="btn btn-danger" name="button" value="add">Adicionar cliente</button>
+      </div>
+    </form>
+  </div>
+  {% elif success == 3 %}
+    <div class="my_menu2">
+      <div style="margin-top: 20px;" class="alert alert-danger">Nenhum cliente encontrado</div>
+    </div>
+    <form action="/adicionar_cliente/" method="GET">
+      <div class="my_menu2">
+        <button type="submit" class="btn btn-danger" name="button" value="add">Adicionar cliente</button>
+      </div>
+    </form>
+  {% elif success == 4 %}
+    <div class="my_menu2">
+      <div style="margin-top: 20px;" class="alert alert-danger">Preencha pelo menos um campo</div>
+    </div>
+  {% endif %}
+{% endblock %}
+
+
+{% block script %}
+  <script src="/static/js/js/bootstrap-select.min.js"></script>
+  <script src="/static/js/js_datepicker/bootstrap-datepicker.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
+  <script>
+    $('.datepicker').datepicker();
+    // creates an object with the types as keys and products as values
+    var product_list = {
+      // takes keys and values from the
+      {% for tipo, query in products.items %}
+        "{{ tipo }}": [
+          {% for produto in query %}
+            '{{ produto.nome }}',
+          {% endfor %}
+        ],
+      {% endfor %}
+    };
+
+    function get_type(event) {
+      $(document).ready(function (){
+        $("#product_list").children().remove();
+        var type = product_list[$("#product_type").val()].sort();
+        for(var i = 0; i < type.length; i++){
+          $("#product_list").append("<option>" + type[i] + "</option>");
+          $('.selectpicker').selectpicker('refresh');
+        }
+      });
+    }
+
+    function validateForm() {
+      var check = document.activeElement.value;
+      if (check === "filter"){
+        var data = {};
+        data.nome = document.getElementById("nome").value;
+        data.telefone = document.getElementById("telefone").value;
+        if (data.nome || data.telefone){
+          axios.post("/escolher_cliente/filter/", data)
+            .then(function(result){
+              try {
+                if(result.data === "empty"){
+                  console.log("empty");
+{#                  store.dispatch(updateFiltered([], "empty"));#}
+                }
+                else {
+                  console.log(result.data);
+{#                  store.dispatch(updateFiltered(result.data, "list"));#}
+                }
+              } catch (e) {
+                console.error(e);
+              }
+
+            })
+            .catch(function(error){
+{#              store.dispatch(updateFiltered([], "fail"));#}
+              console.log(error);
+            })
+        }
+      }
+      return false;
+    }
+
+    function brPhoneStyle(event){
+      var input = document.getElementById("telefone").value.replace(/\D/g, "");
+      console.log(input);
+      if(input.length === 10){
+        document.getElementById("telefone").value = "(" + input.slice(0,2) + ")" + input.slice(2,6) + "-" + input.slice(-4);
+      }
+      else if(input.length === 11){
+        document.getElementById("telefone").value = "(" + input.slice(0,2) + ")" + input.slice(2,7) + "-" + input.slice(-4);
+      }else{
+        document.getElementById("telefone").value = "";
+      }
+    }
+
+
+
+
+  </script>
+{% endblock %}

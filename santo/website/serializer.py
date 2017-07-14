@@ -64,6 +64,7 @@ class EstoqueSerializer (serializers.Serializer):
 
 
 class ClienteSerializer (serializers.Serializer):
+    id = serializers.IntegerField(required=False)
     nome = serializers.CharField(max_length=60)
     telefone = serializers.CharField(max_length=20, required=False)
     tipo = serializers.CharField(max_length=2, required=False)

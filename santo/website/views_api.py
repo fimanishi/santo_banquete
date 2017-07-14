@@ -198,8 +198,8 @@ def escolher_cliente_filter(request):
                 filtered = models.Cliente.objects.filter(telefone=serializer.validated_data["telefone"])
             if filtered:
                 for i in filtered:
-                    filtered_json.append({"nome": i.nome.title(), "telefone": i.telefone})
-                s = website.serializer.ClienteSearchSerializer(filtered_json, many=True)
+                    filtered_json.append({"id": i.id, "nome": i.nome.title(), "telefone": i.telefone, "endereco": i.endereco.title(), "bairro": i.bairro, "cidade": i.cidade.title()})
+                s = website.serializer.ClienteSerializer(filtered_json, many=True)
                 return Response(s.data)
             else:
                 return Response("empty")
@@ -406,3 +406,12 @@ def estoque_update(request):
             ingredient_id.estoque = serializer.validated_data["estoque"]
             ingredient_id.save()
             return Response("update")
+
+
+@api_view(["POST"])
+@login_required
+def cliente_update(request):
+    if request.method == "POST":
+        serializer = website.serializer.ClienteSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            return Response(True)
