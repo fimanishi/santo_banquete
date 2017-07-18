@@ -49,6 +49,7 @@ def authenticated(request):
 def adicionar_cliente(request):
     # initializes an empty cart list in the session as the view will redirect to a new order
     request.session["cart"] = []
+    request.session["cart_serializer"] = []
     # initializes an empty cart_user dictionary in the session as the view will redirect to a new order
     request.session["cart_user"] = {}
     # success = 1 means that the user just entered the view and should render the initial page for that view
@@ -109,14 +110,7 @@ def adicionar_cliente(request):
 
 @login_required
 def pedidos(request):
-    success = 1
-    filtered = []
-    if request.method == "GET":
-        pass
-    context = {}
-    # request.session['cart'] = []
-    # del request.session['cart']
-    return TemplateResponse(request, "pedidos.html", context)
+    return TemplateResponse(request, "pedidos.html")
 
 
 @login_required
@@ -133,45 +127,6 @@ def finalizar_pedido(request):
 
 @login_required
 def novo_pedido(request):
-    # success = 1 means that the user just entered the view and should render the initial page for that view
-    success = 1
-    if request.method == "GET":
-        # gets cliente from ClienteSelection form
-        form = website.forms.ClienteSelection(request.GET or None)
-        if form.is_valid():
-            # assigns the cliente's values to cart_user in a dictionary
-            request.session["cart_user"] = models.Cliente.objects.filter(id=form.cleaned_data["cliente"]).values()[0]
-        else:
-            # if the form is invalid(the cliente data was not passed), redirects to escolher_cliente view
-            http.HttpResponseRedirect("/escolher_cliente/")
-    elif request.method == "POST":
-        # gets tipo, produto and quantidade from Pedido form
-        form = website.forms.Pedido(request.POST or None)
-        if form.is_valid():
-            # appends to the cart list a dictionary with the produto_id, nome and quantidade
-            exists = False
-            if request.session["cart"]:
-                for i in request.session["cart"]:
-                    if i["product_id"] == models.Produto.objects.get(nome=form.cleaned_data["produto"]).id:
-                        i["quantity"] += float(form.cleaned_data["quantidade"])
-                        exists = True
-                        break
-                if not exists:
-                    request.session["cart"].append(
-                        {"product_id": models.Produto.objects.get(nome=form.cleaned_data["produto"]).id,
-                         "produto": form.cleaned_data["produto"], "quantity": float(form.cleaned_data["quantidade"]),
-                         "cost": float(models.Produto.objects.get(nome=form.cleaned_data["produto"]).valor)})
-            else:
-                request.session["cart"].append({"product_id": models.Produto.objects.get(nome=form.cleaned_data["produto"]).id,
-                                            "produto": form.cleaned_data["produto"], "quantity": float(form.cleaned_data["quantidade"]),
-                                            "cost": float(models.Produto.objects.get(nome=form.cleaned_data["produto"]).valor)})
-        else:
-            # success = 3 means that the Pedido form is invalid and displays a message to the user indicating it
-            success = 3
-    # checks to see if the cart has items on it and that the input form is not invalid
-    if request.session["cart"] and success != 3:
-        # success = 2 means that the cart has items and displays it
-        success = 2
     # gets all the distinct types of food categories
     types = models.Produto.objects.filter(~Q(tipo="bebida")).distinct("tipo").order_by("tipo")
     # gets all products
@@ -185,70 +140,21 @@ def novo_pedido(request):
     # adds the categories to the django template
     context["types"] = types
     # adds the cliente values to the django template
-    context["cliente"] = request.session["cart_user"]
-    # adds the cart to the django template
-    context["cart"] = request.session["cart"]
-    # adds the success status to the django template
-    context["success"] = success
-    # saves the changes in the session
-    request.session.save()
-    # if the user refreshes the page, redirects it to the same view
-    if request.method == "POST":
-        return http.HttpResponseRedirect("/novo_pedido/")
-    else:
-        return TemplateResponse(request, "novo_pedido.html", context)
+    return TemplateResponse(request, "novo_pedido.html", context)
 
 
 @login_required
 def escolher_cliente(request):
     # initializes an empty cart list in the session as the view will redirect to a new order
     request.session["cart"] = []
+    request.session["cart_serializer"] = []
     # initializes an empty cart_user dictionary in the session as the view will redirect to a new order
     request.session["cart_user"] = {}
-    # initializes an empty list that will receive filtered items from db
-    filtered = []
-    # success = 1 means that the user just entered the view and should render the initial page for that view
-    success = 1
-    # tries to assign to the variable referer the path that refered this view
-    try:
-        referer = request.META['HTTP_REFERER']
-    # if there's no referer, assigns an empty string
-    except KeyError:
-        referer = ""
-    # checks if the current view was the referer
-    check = re.search(r"escolher_cliente", referer)
-    # if the current view was the referer
-    if request.method == "GET" and check:
-        # gets cliente from ClienteSearch form
-        form = website.forms.ClienteSearch(request.GET or None)
-        if form.is_valid():
-            # success = 2 means that the validation passed and matches to the filter were found
-            success = 2
-            # if the user inputs nome and telefone, filters for a match for both
-            if form.cleaned_data["nome"] and form.cleaned_data["telefone"]:
-                filtered = models.Cliente.objects.filter(nome__icontains=form.cleaned_data["nome"], telefone=form.cleaned_data["telefone"])
-            # if the user inputs nome, filters for a match that contains nome
-            elif form.cleaned_data["nome"]:
-                filtered = models.Cliente.objects.filter(nome__icontains=form.cleaned_data["nome"])
-            # if the user inputs telefone, filters for a match for the telefone
-            elif form.cleaned_data["telefone"]:
-                filtered = models.Cliente.objects.filter(telefone=form.cleaned_data["telefone"])
-            # if no matches were found
-            if not filtered:
-                # success = 3 means that no matches were found and display a message indicating it
-                success = 3
-        else:
-            # success = 4 means that the form ClienteSearch is not valid. displays a message indicating it to the user
-            success = 4  
-    # adds the filtered list and success status to the django template
-    context = {"filtered": filtered, "success": success}
-    return TemplateResponse(request, "escolher_cliente.html", context)
+    return TemplateResponse(request, "escolher_cliente.html")
 
 
 @login_required
 def producao(request):
-    # success = 1 means that the user just entered the view and should render the initial page for that view
-    success = 1
     # gets all the distinct types of food categories
     types = models.Produto.objects.filter(~Q(tipo="bebida")).distinct("tipo").order_by("tipo")
     # gets all products
@@ -261,11 +167,24 @@ def producao(request):
             context['products'][j.tipo] = models.Produto.objects.filter(tipo=j.tipo)
     # adds the categories
     context["types"] = types
-    context["success"] = success
-    if request.method == "POST":
-        return http.HttpResponseRedirect("/producao/")
-    else:
-        return TemplateResponse(request, "producao_react.html", context)
+    return TemplateResponse(request, "producao_react.html", context)
+
+
+@login_required
+def producao_selection(request):
+    # gets all the distinct types of food categories
+    types = models.Produto.objects.filter(~Q(tipo="bebida")).distinct("tipo").order_by("tipo")
+    # gets all products
+    products = models.Produto.objects.all()
+    # creates a dictionary to store all categories and products
+    context = {'products': {}}
+    # dynamically creates the dictionary containing categories and products
+    for i in products:
+        for j in types:
+            context['products'][j.tipo] = models.Produto.objects.filter(tipo=j.tipo)
+    # adds the categories
+    context["types"] = types
+    return TemplateResponse(request, "producao_selection.html", context)
 
 
 @login_required

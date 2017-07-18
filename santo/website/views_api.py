@@ -26,66 +26,52 @@ from django.views.decorators.csrf import csrf_exempt
 
 # page to add a new client. does the verification of the fields and adds to the database
 # required inputs: nome completo and cidade
+@api_view(["POST"])
 @login_required
-def adicionar_cliente(request):
-    # initializes an empty cart list in the session as the view will redirect to a new order
-    request.session["cart"] = []
-    # initializes an empty cart_user dictionary in the session as the view will redirect to a new order
-    request.session["cart_user"] = {}
-    # success = 1 means that the user just entered the view and should render the initial page for that view
-    success = 1
-    # client_id will be passed to the new order page. If not assigned, it's an empty string
-    client_id = ""
+def cliente_add(request):
     if request.method == "POST":
         # gets nome, telefone, tipo, endereco, bairro, cidade e referencia from the ClientData form
-        form = website.forms.ClienteData(request.POST or None)
-        if form.is_valid():
+        serializer = website.serializer.ClienteSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
             # checks against the Cliente database to see if a client with nome already exists
-            exist_check = models.Cliente.objects.filter(nome=form.cleaned_data["nome"].lower())
+            exist_check = models.Cliente.objects.filter(nome=serializer.validated_data["nome"].lower())
             # if client exists
             if exist_check:
                 # loops through all clients that have nome as nome
                 for each in exist_check:
                     # if a client with nome and the telefone from the form already exists, display message
-                    if each.telefone == form.cleaned_data["telefone"]:
-                        # success = 4 means that the client already exists in the db and a message should be displayed
-                        success = 4
+                    if each.telefone == serializer.validated_data["telefone"]:
+                        return Response({"id": each.id, "nome": each.nome, "message": "exists"})
                     else:
                         # if the client is in the db but has a different phone number, adds a new instance to the db
-                        models.Cliente.objects.create(nome=form.cleaned_data["nome"].lower(),
-                                                      telefone=form.cleaned_data["telefone"],
-                                                      tipo=form.cleaned_data["tipo"],
-                                                      endereco=form.cleaned_data["endereco"].lower(),
-                                                      bairro=form.cleaned_data["bairro"],
-                                                      cidade=form.cleaned_data["cidade"].lower(),
-                                                      referencia=form.cleaned_data["referencia"].lower())
-                        # success = 2 means that the new client was added successfully
-                        success = 2
+                        models.Cliente.objects.create(nome=serializer.validated_data["nome"].lower(),
+                                                      telefone=serializer.validated_data["telefone"],
+                                                      tipo=serializer.validated_data["tipo"],
+                                                      endereco=serializer.validated_data["endereco"].lower(),
+                                                      bairro=serializer.validated_data["bairro"],
+                                                      cidade=serializer.validated_data["cidade"].lower(),
+                                                      referencia=serializer.validated_data["referencia"].lower())
                         # gets the id from the new client. this id will be passed to next view
-                        client_id = models.Cliente.objects.last()
+                        client = models.Cliente.objects.last()
+                        user_json = {"id": client.id, "nome": client.nome.title()}
+                        request.session["cart_user"] = user_json
+                        request.session.save()
+                        return Response({"id": client.id, "nome": client.nome.title(), "message": "added"})
             else:
-                # if the client is not in the db, adds the client to the db
-                models.Cliente.objects.create(nome=form.cleaned_data["nome"].lower(),
-                                              telefone=form.cleaned_data["telefone"],
-                                              tipo=form.cleaned_data["tipo"],
-                                              endereco=form.cleaned_data["endereco"].lower(),
-                                              bairro=form.cleaned_data["bairro"],
-                                              cidade=form.cleaned_data["cidade"].lower(),
-                                              referencia=form.cleaned_data["referencia"].lower())
-                # success = 2 means that the new client was added successfully
-                success = 2
+                # if the client is in the db but has a different phone number, adds a new instance to the db
+                models.Cliente.objects.create(nome=serializer.validated_data["nome"].lower(),
+                                              telefone=serializer.validated_data["telefone"],
+                                              tipo=serializer.validated_data["tipo"],
+                                              endereco=serializer.validated_data["endereco"].lower(),
+                                              bairro=serializer.validated_data["bairro"],
+                                              cidade=serializer.validated_data["cidade"].lower(),
+                                              referencia=serializer.validated_data["referencia"].lower())
                 # gets the id from the new client. this id will be passed to next view
-                client_id = models.Cliente.objects.last()
-        else:
-            # success = 3 means that the form is not valid. displays a message indicating it to the user
-            success = 3
-    # adds context with success and client_id to the django template
-    context = {"success": success,
-               }
-    if client_id:
-        context["id"] = client_id.id
-
-    return TemplateResponse(request, "adicionar_cliente.html", context)
+                client = models.Cliente.objects.last()
+                user_json = {"id": client.id, "nome": client.nome.title()}
+                request.session["cart_user"] = user_json
+                request.session.save()
+                return Response({"id": client.id, "nome": client.nome.title(), "message": "added"})
 
 
 @login_required
@@ -119,67 +105,9 @@ def finalizar_pedido_delivery(request):
     return TemplateResponse(request, "finalizar_pedido.html", context)
 
 
-@login_required
-def novo_pedido(request):
-    # success = 1 means that the user just entered the view and should render the initial page for that view
-    success = 1
-    if request.method == "GET":
-        # gets cliente from ClienteSelection form
-        form = website.forms.ClienteSelection(request.GET or None)
-        if form.is_valid():
-            # assigns the cliente's values to cart_user in a dictionary
-            request.session["cart_user"] = models.Cliente.objects.filter(id=form.cleaned_data["cliente"]).values()[0]
-        else:
-            # if the form is invalid(the cliente data was not passed), redirects to escolher_cliente view
-            http.HttpResponseRedirect("/escolher_cliente/")
-    elif request.method == "POST":
-        # gets tipo, produto and quantidade from Pedido form
-        form = website.forms.Pedido(request.POST or None)
-        if form.is_valid():
-            # appends to the cart list a dictionary with the produto_id, nome and quantidade
-            request.session["cart"].append({"product_id": models.Produto.objects.get(nome=form.cleaned_data["produto"]).id, "produto": form.cleaned_data["produto"], "quantity": float(form.cleaned_data["quantidade"])})
-        else:
-            # success = 3 means that the Pedido form is invalid and displays a message to the user indicating it
-            success = 3
-    # checks to see if the cart has items on it and that the input form is not invalid
-    if request.session["cart"] and success != 3:
-        # success = 2 means that the cart has items and displays it
-        success = 2
-    # gets all the distinct types of food categories
-    types = models.Produto.objects.filter(~Q(tipo="bebida")).distinct("tipo").order_by("tipo")
-    # gets all products
-    products = models.Produto.objects.all()
-    # creates a dictionary to store all categories and products
-    context = {'products': {}}
-    # dynamically creates the dictionary containing categories and products
-    for i in products:
-        for j in types:
-            context['products'][j.tipo] = models.Produto.objects.filter(tipo=j.tipo)
-    # adds the categories to the django template
-    context["types"] = types
-    # adds the cliente values to the django template
-    context["cliente"] = request.session["cart_user"]
-    # adds the cart to the django template
-    context["cart"] = request.session["cart"]
-    # adds the success status to the django template
-    context["success"] = success
-    # saves the changes in the session
-    request.session.save()
-    # if the user refreshes the page, redirects it to the same view
-    if request.method == "POST":
-        return http.HttpResponseRedirect("/novo_pedido/")
-    else:
-        return TemplateResponse(request, "novo_pedido.html", context)
-
-
 @api_view(["POST"])
 @login_required
 def escolher_cliente_filter(request):
-    # # initializes an empty cart list in the session as the view will redirect to a new order
-    # request.session["cart"] = []
-    # # initializes an empty cart_user dictionary in the session as the view will redirect to a new order
-    # request.session["cart_user"] = {}
-    # initializes an empty list that will receive filtered items from db
     filtered = []
     filtered_json = []
     # if the current view was the referer
@@ -189,16 +117,47 @@ def escolher_cliente_filter(request):
         if serializer.is_valid(raise_exception=True):
             # if the user inputs nome and telefone, filters for a match for both
             if serializer.validated_data["nome"] and serializer.validated_data["telefone"]:
-                filtered = models.Cliente.objects.filter(nome__icontains=serializer.validated_data["nome"], telefone=serializer.validated_data["telefone"])
+                filtered = models.Cliente.objects.filter(nome__icontains=serializer.validated_data["nome"], telefone=serializer.validated_data["telefone"]).order_by("nome")
             # if the user inputs nome, filters for a match that contains nome
             elif serializer.validated_data["nome"]:
-                filtered = models.Cliente.objects.filter(nome__icontains=serializer.validated_data["nome"])
+                filtered = models.Cliente.objects.filter(nome__icontains=serializer.validated_data["nome"]).order_by("nome")
             # if the user inputs telefone, filters for a match for the telefone
             elif serializer.validated_data["telefone"]:
-                filtered = models.Cliente.objects.filter(telefone=serializer.validated_data["telefone"])
+                filtered = models.Cliente.objects.filter(telefone=serializer.validated_data["telefone"]).order_by("nome")
             if filtered:
                 for i in filtered:
                     filtered_json.append({"id": i.id, "nome": i.nome.title(), "telefone": i.telefone, "endereco": i.endereco.title(), "bairro": i.bairro, "cidade": i.cidade.title()})
+                s = website.serializer.ClienteSerializer(filtered_json, many=True)
+                return Response(s.data)
+            else:
+                return Response("empty")
+
+
+@api_view(["POST"])
+@login_required
+def escolher_fornecedor_filter(request):
+    filtered = []
+    filtered_json = []
+    # if the current view was the referer
+    if request.method == "POST":
+        # gets cliente from ClienteSearch form
+        serializer = website.serializer.FornecedorSearchSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # if the user inputs nome and telefone, filters for a match for both
+            if serializer.validated_data["nome"] and serializer.validated_data["contato"]:
+                filtered = models.Fornecedor.objects.filter(nome__icontains=serializer.validated_data["nome"],
+                                                            contato__icontains=serializer.validated_data["contato"]).order_by("nome")
+            # if the user inputs nome, filters for a match that contains nome
+            elif serializer.validated_data["nome"]:
+                filtered = models.Fornecedor.objects.filter(nome__icontains=serializer.validated_data["nome"]).order_by("nome")
+            # if the user inputs telefone, filters for a match for the telefone
+            elif serializer.validated_data["contato"]:
+                filtered = models.Fornecedor.objects.filter(contato__icontains=serializer.validated_data["contato"]).order_by("nome")
+            if filtered:
+                for i in filtered:
+                    filtered_json.append({"id": i.id, "nome": i.nome.title(), "telefone": i.telefone,
+                                          "endereco": i.endereco.title(), "bairro": i.bairro,
+                                          "cidade": i.cidade.title(), "contato": i.contato})
                 s = website.serializer.ClienteSerializer(filtered_json, many=True)
                 return Response(s.data)
             else:
@@ -214,6 +173,8 @@ def producao_add(request):
         if serializer.is_valid(raise_exception=True):
             # gets the id of the produto selected on the form
             product_id = models.Produto.objects.get(nome=serializer.validated_data["produto"])
+            product_id.estoque += serializer.validated_data["quantidade"]
+            product_id.save()
             # filters the Quantidade model for items that have the id of the selected produto
             quantidades = models.Quantidade.objects.filter(produto_id=product_id.id)
             # loops through the filtererd elements
@@ -257,7 +218,6 @@ def producao_filter(request):
         if serializer.is_valid(raise_exception=True):
             # if the user adds a starting date
             if serializer.validated_data["data_field"]:
-                print(serializer.validated_data["data_field"])
                 # if the user also added a produto
                 if serializer.validated_data["produto"]:
                     # filters from the Producao model by date and produto
@@ -300,6 +260,9 @@ def producao_delete(request):
                 return Response(False)
             else:
                 try:
+                    product_id = models.Produto.objects.get(nome=serializer.validated_data["produto"])
+                    product_id.estoque -= serializer.validated_data["quantidade"]
+                    product_id.save()
                     models.Producao.objects.filter(id=serializer.validated_data["id"]).delete()
                     product_id = models.Produto.objects.get(nome=serializer.validated_data["produto"])
                     # filters the Quantidade model for items that have the id of the selected produto
@@ -317,6 +280,47 @@ def producao_delete(request):
                     return Response(True)
                 except ObjectDoesNotExist:
                     return Response(False)
+
+
+@api_view(["POST"])
+@login_required
+def producao_estoque_update(request):
+    if request.method == "POST":
+        # gets id and new estoque value from EstoqueSerializer
+        serializer = website.serializer.ProdutoSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # gets the object that matches the produto selection
+            product_id = models.Produto.objects.get(id=serializer.validated_data["id"])
+            product_id.estoque = serializer.validated_data["estoque"]
+            product_id.variacao_estoque = serializer.validated_data["estoque"] - product_id.estoque
+            product_id.save()
+            return Response("update")
+
+
+@api_view(["POST"])
+@login_required
+def producao_estoque(request):
+    filtered = []
+    filtered_json = []
+    if request.method == "POST":
+        # gets tipo, produto and data_field from ProducaoData serializer
+        serializer = website.serializer.ProdutoSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # if the user provided the produto
+            if serializer.validated_data["produto"]:
+                # filters from the Producao model by produto
+                filtered = models.Produto.objects.filter(nome=serializer.validated_data["produto"]).order_by("nome")
+            # if the user provided only the tipo
+            elif serializer.validated_data["tipo"]:
+                # filters from the Producao model by tip
+                filtered = models.Produto.objects.filter(tipo=serializer.validated_data["tipo"]).order_by("nome")
+            if filtered:
+                for i in filtered:
+                    filtered_json.append({"estoque": float(i.estoque), "id": i.id, "produto": i.nome})
+                s = website.serializer.ProdutoSerializer(filtered_json, many=True)
+                return Response(s.data)
+            else:
+                return Response("empty")
 
 
 @api_view(["POST"])
@@ -402,7 +406,9 @@ def estoque_update(request):
         if serializer.is_valid(raise_exception=True):
             # gets the object that matches the ingrediente selection
             ingredient_id = models.Ingrediente.objects.get(id=serializer.validated_data["id"])
-            # updates quantidada in estoque
+            # calculates and updates the net estoque
+            ingredient_id.variacao_estoque = serializer.validated_data["estoque"] - ingredient_id.estoque
+            # updates quantidade in estoque
             ingredient_id.estoque = serializer.validated_data["estoque"]
             ingredient_id.save()
             return Response("update")
@@ -414,4 +420,79 @@ def cliente_update(request):
     if request.method == "POST":
         serializer = website.serializer.ClienteSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
+            cliente = models.Cliente.objects.get(id=serializer.validated_data["id"])
+            cliente.nome = serializer.validated_data["nome"].lower()
+            cliente.telefone = serializer.validated_data["telefone"]
+            cliente.endereco = serializer.validated_data["endereco"].lower()
+            cliente.bairro = serializer.validated_data["bairro"]
+            cliente.cidade = serializer.validated_data["cidade"].lower()
+            cliente.save()
+            return Response(True)
+
+
+@api_view(["POST"])
+@login_required
+def novo_pedido_add(request):
+    if request.method == "POST":
+        # gets tipo, produto and quantidade from ProducaoData form
+        serializer = website.serializer.PedidoSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            request.session["cart_serializer"].append({"produto": serializer.validated_data["produto"],
+                                        "quantidade": str(serializer.validated_data["quantidade"]).replace(".", ",")})
+            request.session["cart"].append({"produto": serializer.validated_data["produto"],
+                                            "quantidade": float(serializer.validated_data["quantidade"])})
+            serialized_session = website.serializer.ListPedidoSerializer({"cart": request.session["cart_serializer"]})
+            print(request.session["cart"])
+            print(request.session["cart_serializer"])
+            request.session.save()
+            return Response(serialized_session.data)
+        else:
+            # request was invalid. displays message to the user
+            return Response("fail")
+
+
+@api_view(["POST"])
+@login_required
+def novo_pedido_delete(request):
+    if request.method == "POST":
+        serializer = website.serializer.PedidoSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serialized_session = website.serializer.ListPedidoSerializer({"cart": request.session["cart"]})
+            for i in range(len(request.session["cart"])):
+                if request.session["cart"][i]["produto"] == serializer.validated_data["produto"]:
+                    request.session["cart"].remove(request.session["cart"][i])
+                    request.session["cart_serializer"].remove(request.session["cart_serializer"][i])
+                    request.session.save()
+                    serialized_session = website.serializer.ListPedidoSerializer({"cart": request.session["cart_serializer"]})
+                    return Response(serialized_session.data)
+            return Response(serialized_session.data)
+
+
+@api_view(["POST"])
+@login_required
+def novo_pedido_update(request):
+    if request.method == "POST":
+        serializer = website.serializer.PedidoSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serialized_session = website.serializer.ListPedidoSerializer({"cart": request.session["cart"]})
+            for i in range(len(request.session["cart"])):
+                if request.session["cart"][i]["produto"] == serializer.validated_data["produto"]:
+                    request.session["cart"][i]["quantidade"] = float(serializer.validated_data["quantidade"])
+                    request.session["cart_serializer"][i]["quantidade"] = str(serializer.validated_data["quantidade"]).replace(".", ",")
+                    request.session.save()
+                    serialized_session = website.serializer.ListPedidoSerializer({"cart": request.session["cart_serializer"]})
+                    return Response(serialized_session.data)
+            return Response(serialized_session.data)
+
+
+@api_view(["POST"])
+@login_required
+def cart_user(request):
+    if request.method == "POST":
+        serializer = website.serializer.IdSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            user = models.Cliente.objects.get(id=serializer.validated_data["user_id"])
+            user_json = {"id": user.id, "nome": user.nome.title()}
+            request.session["cart_user"] = user_json
+            request.session.save()
             return Response(True)

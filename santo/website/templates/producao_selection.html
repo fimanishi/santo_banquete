@@ -1,0 +1,114 @@
+{% extends "base.html" %}{% load static %}
+
+{% block css %}
+  <link rel="stylesheet" type="text/css" href="/static/css/dist/css_datepicker/bootstrap-datepicker.min.css">
+  <link rel="stylesheet" type="text/css" href="/static/css/dist/css/bootstrap-select.min.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/adicionar_cliente.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/producao_react/main.affb6591.css"/>
+
+{% endblock %}
+
+
+{% block loggedin %}
+  <li><a>Usuário: {{ request.user.username }}</a></li>
+  <li><a href="/logout" style="text-decoration: underline;">Sair</a></li>
+{% endblock %}
+
+{% block content %}
+  <div class="my_menu">
+    <div id="adicionar_message"><h3>Produção</h3></div>
+  </div>
+  <div class="my_menu2">
+    <a href="/producao/"><button style="margin: 5px 0 5px 0;" class="btn btn-danger btn-block">Adicionar Produção</button></a>
+  </div>
+  <br/>
+  <form onsubmit="return validateForm()">
+    <div style="text-align: center;" class="my_menu2">
+      <h4>Filtrar por:</h4>
+    </div>
+    <div class="my_menu2">
+      <p>Tipo:</p>
+      <div style="margin-bottom: 5px;">
+        <select id="product_type" class="selectpicker" data-dropdown-align-right="true" title="Selecione o tipo" onchange="getType(event)" name="tipo">
+          {% for type in types %}
+            <option>{{ type.tipo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <br/>
+    <div class="my_menu2">
+      <p>Produto:</p>
+      <div style="margin-bottom: 5px;">
+        <select id="product_list" class="selectpicker" data-dropdown-align-right="true" title="Selecione o Produto" name="produto"">
+        </select>
+      </div>
+    </div>
+    <br/>
+    <div class="my_menu2">
+      <button type="submit" class="btn btn-primary" name="button" value="filter">Visualizar Estoque</button>
+    </div>
+  </form>
+  {# placeholder for react results #}
+  <div id="result_list"></div>
+
+{% endblock %}
+
+
+{% block script %}
+  <script src="/static/js/js/bootstrap-select.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
+  <script src="/static/js/producao_estoque_react/main.b9e705dc.js"></script>
+  <script>
+    // creates an object with the types as keys and products as values
+    var product_list = {
+      // takes keys and values from the
+      {% for tipo, query in products.items %}
+        "{{ tipo }}": [
+          {% for produto in query %}
+            '{{ produto.nome }}',
+          {% endfor %}
+        ],
+      {% endfor %}
+    };
+
+    function getType(event){
+      $(document).ready(function (){
+        $("#product_list").children().remove();
+        var type = product_list[$("#product_type").val()].sort();
+        for(var i = 0; i < type.length; i++){
+          $("#product_list").append("<option>" + type[i] + "</option>");
+          $('.selectpicker').selectpicker('refresh');
+        }
+      });
+    }
+
+    function validateForm() {
+      var data = {};
+      data.tipo = document.getElementById("product_type").value;
+      data.produto = document.getElementById("product_list").value;
+      $('.selectpicker').selectpicker('val', '');
+      if (data.tipo || data.produto){
+        axios.post("/producao/estoque/", data)
+          .then(function(result){
+            try {
+              if(result.data === "empty"){
+                store.dispatch(updateFiltered([], "empty"));
+              }
+              else {
+                store.dispatch(updateFiltered(result.data, "list"));
+              }
+            } catch (e) {
+              console.error(e);
+            }
+
+          })
+          .catch(function(error){
+            console.error(error);
+            //console.error(error.response.data);
+          })
+      }
+      return false;
+    }
+  </script>
+{% endblock %}

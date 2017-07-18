@@ -3,6 +3,7 @@
 {% block css %}
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css/bootstrap-select.min.css" />
   <link rel="stylesheet" type="text/css" href="/static/css/adicionar_cliente.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/producao_react/main.affb6591.css"/>
 
 {% endblock %}
 
@@ -15,20 +16,18 @@
 {% block content %}
   <div>
     <div id="adicionar_message"><h3>Adicionar novo cliente</h3></div>
-    {% if success != 2 %}
-    <form id="novo_cliente_form" action="./" method="POST">
-    {% csrf_token %}
+    <form onsubmit="return validateForm()">
       <div class="my_menu2">
         <div class="long-field input-group">
           <p>Nome Completo:</p>
-          <input type="text" class="field_sizing form-control" placeholder="Nome Completo" aria-describedby="basic-addon1" name="nome">
+          <input id="nome" type="text" class="field_sizing form-control" placeholder="Nome Completo" aria-describedby="basic-addon1" name="nome">
           <div class="help-block with-errors"></div>
         </div>
       </div>
       <div class="my_menu2">
         <div class="long-field input-group">
           <p>Referência:</p>
-          <input type="text" class="field_sizing form-control" placeholder="Referência" aria-describedby="basic-addon1" name="referencia">
+          <input id="referencia" type="text" class="field_sizing form-control" placeholder="Referência" aria-describedby="basic-addon1" name="referencia">
         </div>
       </div>
       <div class="my_menu2">
@@ -97,53 +96,55 @@
         </div>
         <div class="input-group">
           <p>Cidade:</p>
-          <input type="text" class="field_sizing form-control" placeholder="Cidade" value="Colatina" aria-describedby="basic-addon1" name="cidade">
+          <input id="cidade" type="text" class="field_sizing form-control" placeholder="Cidade" value="Colatina" aria-describedby="basic-addon1" name="cidade">
         </div>
       </div>
       <div class="my_menu2">
         <div class="long-field input-group">
           <p>Endereço:</p>
-          <input type="text" class="field_sizing form-control" placeholder="Endereço" aria-describedby="basic-addon1" name="endereco">
+          <input id="endereco" type="text" class="field_sizing form-control" placeholder="Endereço" aria-describedby="basic-addon1" name="endereco">
         </div>
       </div>
       <div class="my_menu2">
         <button style="margin: 5px 0 5px 0;" type="submit" class="btn btn-danger btn-block" name="button" value="add">Adicionar novo cliente</button>
       </div>
     </form>
-    {% endif %}
   </div>
-  {% if success == 2 %}
-    <div class="my_menu2">
-      <div style="margin: 10px 0 10px 0;" class="alert alert-success" role="alert">Cliente adicionado com sucesso</div>
+  {#  MODAL  #}
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">Adicionar Cliente</h4>
+          </div>
+          <div class="modal-body">
+            Deseja adicionar o cliente abaixo?<br><br>
+            Nome: <span id="nome_modal"></span><br>
+            Cidade: <span id="cidade_modal"></span>
+          </div>
+          <div class="modal-footer">
+            <form id="modal_form">
+              <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="rejectModal()" value="no">Nao</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="confirmModal()" value="yes">Sim</button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="my_menu2">
-      <form action="/novo_pedido/" method="GET">
-        {% csrf_token %}
-        <button type="submit" style="margin: 5px 0 5px 0;" class="btn btn-danger btn-block">Criar pedido</button>
-        <input type="hidden" name="cliente" value={{ id | default:"" }}>
-      </form>
-    </div>
-    <div class="my_menu2">
-      <a href="/adicionar_cliente"><button style="margin: 5px 0 5px 0;" class="btn btn-primary btn-block">Adicionar outro novo cliente</button></a>
-    </div>
-  {% elif success == 3 %}
-    <div class="my_menu2">
-      <div class="alert alert-danger">Insira nome completo e cidade</div>
-    </div>
-  {% elif success == 4 %}
-    <div class="my_menu2">
-      <div class="alert alert-danger">Cliente já cadastrado</div>
-    </div>
-  {% endif %}
+  {# END OF MODAL   #}
+  {# placeholder for react results #}
+  <div id="result_list"></div>
 {% endblock %}
 
 
 {% block script %}
   <script src="/static/js/js/bootstrap-select.min.js"></script>
+  <script src="/static/js/adicionar_cliente_react/main.f16eb58a.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
   <script>
     function brPhoneStyle(event){
       var input = document.getElementById("telefone").value.replace(/\D/g, "");
-      console.log(input);
       if(input.length === 10){
         document.getElementById("telefone").value = "(" + input.slice(0,2) + ")" + input.slice(2,6) + "-" + input.slice(-4);
       }
@@ -152,6 +153,62 @@
       }else{
         document.getElementById("telefone").value = "";
       }
+    }
+
+    function validateForm() {
+      var nome = document.getElementById("nome").value;
+      var cidade = document.getElementById("cidade").value;
+      if (nome && cidade){
+        console.log("test");
+        document.getElementById("nome_modal").innerHTML = nome;
+        document.getElementById("cidade_modal").innerHTML = cidade;
+        $("#myModal").modal();
+      }
+      else {
+        store.dispatch(updateFiltered("add"));
+      }
+      return false;
+    }
+
+    function confirmModal() {
+      var data = {};
+      data.nome = document.getElementById("nome").value;
+      data.referencia = document.getElementById("referencia").value;
+      data.telefone = document.getElementById("telefone").value;
+      data.bairro = document.getElementById("bairro").value;
+      data.cidade = document.getElementById("cidade").value;
+      data.endereco = document.getElementById("endereco").value;
+      try{
+        data.tipo = document.querySelector('input[name="tipo"]:checked').value;
+      }
+      catch (e){
+        data.tipo = "";
+      }
+      $('.selectpicker').selectpicker('val', '');
+      document.getElementById("nome").value = "";
+      document.getElementById("referencia").value = "";
+      document.getElementById("telefone").value = "";
+      document.getElementById("cidade").value = "Colatina";
+      document.getElementById("endereco").value = "";
+      axios.post("/cliente/add/", data)
+        .then(function(result){
+          sessionStorage.setItem("client_id", result.data.id);
+          sessionStorage.setItem("client_name", result.data.nome);
+          store.dispatch(updateFiltered(result.data.message));
+        })
+        .catch(function(error){
+          store.dispatch(updateFiltered("fail"));
+        });
+    }
+
+    function rejectModal() {
+      modal_check = false;
+      $('.selectpicker').selectpicker('val', '');
+      document.getElementById("nome").value = "";
+      document.getElementById("referencia").value = "";
+      document.getElementById("telefone").value = "";
+      document.getElementById("cidade").value = "Colatina";
+      document.getElementById("endereco").value = "";
     }
   </script>
 {% endblock %}

@@ -9,6 +9,8 @@ class Produto(models.Model):
     nome = models.CharField(max_length=50)
     tipo = models.CharField(max_length=20)
     valor = models.FloatField()
+    estoque = models.FloatField()
+    variacao_estoque = models.FloatField()
 
 
 class Ingrediente(models.Model):
@@ -23,6 +25,7 @@ class Ingrediente(models.Model):
     total_comprado = models.FloatField()
     valor_comprado = models.FloatField()
     preco_medio = models.FloatField()
+    variacao_estoque = models.FloatField()
 
 
 class Quantidade(models.Model):
@@ -55,3 +58,18 @@ class Cliente(models.Model):
     bairro = models.CharField(max_length=30)
     cidade = models.CharField(max_length=30)
     referencia = models.CharField(max_length=50)
+
+
+class Fornecedor(models.Model):
+    class Meta:
+        db_table = "fornecedor"
+    razao_social = models.CharField(max_length=60)
+    nome = models.CharField(max_length=60)
+    endereco = models.CharField(max_length=60)
+    cidade = models.CharField(max_length=30)
+    estado = models.CharField(max_length=30)
+    tipo = models.CharField(max_length=5)
+    cnpj = models.CharField(max_length=20)
+    telefone = models.CharField(max_length=20)
+    whatsapp = models.CharField(max_length=20)
+    contato = models.CharField(max_length=60)

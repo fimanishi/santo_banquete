@@ -52,7 +52,7 @@
       </div>
     </div>
     <div class="my_menu2">
-      <button type="submit" class="btn btn-primary" name="button" value="filter">Visualizar pedidos</button>
+      <button type="submit" class="btn btn-primary" name="button" value="filter">Visualizar Estoque</button>
     </div>
   </form>
   {# placeholder for react results #}
@@ -90,19 +90,6 @@
           $('.selectpicker').selectpicker('refresh');
         }
       });
-    }
-
-    function brPhoneStyle(event){
-      var input = document.getElementById("telefone").value.replace(/\D/g, "");
-      console.log(input);
-      if(input.length === 10){
-        document.getElementById("telefone").value = "(" + input.slice(0,2) + ")" + input.slice(2,6) + "-" + input.slice(-4);
-      }
-      else if(input.length === 11){
-        document.getElementById("telefone").value = "(" + input.slice(0,2) + ")" + input.slice(2,7) + "-" + input.slice(-4);
-      }else{
-        document.getElementById("telefone").value = "";
-      }
     }
 
     function validateForm() {

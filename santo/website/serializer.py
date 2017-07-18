@@ -7,6 +7,13 @@ class UserFormSerializer (serializers.Serializer):
     user_password = serializers.CharField(max_length=20)
 
 
+class ProdutoSerializer (serializers.Serializer):
+    id = serializers.IntegerField(required=False)
+    produto = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    estoque = serializers.DecimalField(required=False, decimal_places=3, localize=True, max_digits=5)
+    tipo = serializers.CharField(max_length=50, required=False, allow_blank=True)
+
+
 class ProducaoSerializer (serializers.Serializer):
     id = serializers.IntegerField(required=False)
     data_output = serializers.DateField(required=False, format="%d/%m/%Y")
@@ -66,12 +73,12 @@ class EstoqueSerializer (serializers.Serializer):
 class ClienteSerializer (serializers.Serializer):
     id = serializers.IntegerField(required=False)
     nome = serializers.CharField(max_length=60)
-    telefone = serializers.CharField(max_length=20, required=False)
-    tipo = serializers.CharField(max_length=2, required=False)
-    endereco = serializers.CharField(max_length=50, required=False)
-    bairro = serializers.CharField(max_length=30, required=False)
+    telefone = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    tipo = serializers.CharField(max_length=2, required=False, allow_blank=True)
+    endereco = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    bairro = serializers.CharField(max_length=30, required=False, allow_blank=True)
     cidade = serializers.CharField(max_length=30)
-    referencia = serializers.CharField(max_length=50, required=False)
+    referencia = serializers.CharField(max_length=50, required=False, allow_blank=True)
 
 
 class ClienteSearchSerializer (serializers.Serializer):
@@ -92,6 +99,27 @@ class ClienteSelectionSerializer (serializers.Serializer):
     cliente = serializers.IntegerField()
 
 
-class Pedido (serializers.Serializer):
-    tipo = serializers.CharField(max_length=50)
+class PedidoSerializer (serializers.Serializer):
     produto = serializers.CharField(max_length=50)
+    quantidade = serializers.DecimalField(decimal_places=2, localize=True, max_digits=5)
+
+
+class ListPedidoSerializer (serializers.Serializer):
+    cart = serializers.ListField()
+
+
+class IdSerializer (serializers.Serializer):
+    user_id = serializers.IntegerField()
+
+
+class FornecedorSearchSerializer (serializers.Serializer):
+    nome = serializers.CharField(max_length=60, required=False, allow_blank=True)
+    contato = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    telefone = serializers.CharField(max_length=20, required=False)
+    tipo = serializers.CharField(max_length=2, required=False)
+    endereco = serializers.CharField(max_length=50, required=False)
+    bairro = serializers.CharField(max_length=30, required=False)
+    cidade = serializers.CharField(max_length=30, required=False)
+    razao_social = serializers.CharField(max_length=60, required=False, allow_blank=True)
+    cnpj = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    whatsapp = serializers.CharField(max_length=20, required=False, allow_blank=True)
