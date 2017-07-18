@@ -41,6 +41,9 @@ def cliente_add(request):
                 for each in exist_check:
                     # if a client with nome and the telefone from the form already exists, display message
                     if each.telefone == serializer.validated_data["telefone"]:
+                        user_json = {"id": each.id, "nome": each.nome.title()}
+                        request.session["cart_user"] = user_json
+                        request.session.save()
                         return Response({"id": each.id, "nome": each.nome, "message": "exists"})
                     else:
                         # if the client is in the db but has a different phone number, adds a new instance to the db
@@ -72,6 +75,39 @@ def cliente_add(request):
                 request.session["cart_user"] = user_json
                 request.session.save()
                 return Response({"id": client.id, "nome": client.nome.title(), "message": "added"})
+
+
+@api_view(["POST"])
+@login_required
+def fornecedor_add(request):
+    if request.method == "POST":
+        serializer = website.serializer.FornecedorSearchSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # checks against the Cliente database to see if a supplier with nome already exists
+            try:
+                exist_check = models.Fornecedor.objects.get(nome=serializer.validated_data["nome"].lower())
+                user_json = {"id": exist_check.id, "nome": exist_check.nome.title()}
+                request.session["cart_user"] = user_json
+                request.session.save()
+                return Response({"id": exist_check.id, "nome": exist_check.nome, "message": "exists"})
+            except ObjectDoesNotExist:
+                # if the client is in the db but has a different phone number, adds a new instance to the db
+                models.Fornecedor.objects.create(nome=serializer.validated_data["nome"].lower(),
+                                              razao_social=serializer.validated_data["razao_social"].lower(),
+                                              contato=serializer.validated_data["contato"].lower(),
+                                              telefone=serializer.validated_data["telefone"],
+                                              whatsapp=serializer.validated_data["whatsapp"],
+                                              cnpj=serializer.validated_data["cnpj"],
+                                              tipo=serializer.validated_data["tipo"],
+                                              endereco=serializer.validated_data["endereco"].lower(),
+                                              estado=serializer.validated_data["estado"].lower(),
+                                              cidade=serializer.validated_data["cidade"].lower())
+                # gets the id from the new client. this id will be passed to next view
+                supplier = models.Fornecedor.objects.last()
+                user_json = {"id": supplier.id, "nome": supplier.nome.title()}
+                request.session["cart_user"] = user_json
+                request.session.save()
+                return Response({"id": supplier.id, "nome": supplier.nome.title(), "message": "added"})
 
 
 @login_required

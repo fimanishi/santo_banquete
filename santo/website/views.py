@@ -43,7 +43,6 @@ def authenticated(request):
     return TemplateResponse(request, "authenticated.html", context)
 
 
-# page to add a new client. does the verification of the fields and adds to the database
 # required inputs: nome completo and cidade
 @login_required
 def adicionar_cliente(request):
@@ -52,60 +51,19 @@ def adicionar_cliente(request):
     request.session["cart_serializer"] = []
     # initializes an empty cart_user dictionary in the session as the view will redirect to a new order
     request.session["cart_user"] = {}
-    # success = 1 means that the user just entered the view and should render the initial page for that view
-    success = 1
-    # client_id will be passed to the new order page. If not assigned, it's an empty string
-    client_id = ""
-    if request.method == "POST":
-        # gets nome, telefone, tipo, endereco, bairro, cidade e referencia from the ClientData form
-        form = website.forms.ClienteData(request.POST or None)
-        if form.is_valid():
-            # checks against the Cliente database to see if a client with nome already exists
-            exist_check = models.Cliente.objects.filter(nome=form.cleaned_data["nome"].lower())
-            # if client exists
-            if exist_check:
-                # loops through all clients that have nome as nome
-                for each in exist_check:
-                    # if a client with nome and the telefone from the form already exists, display message
-                    if each.telefone == form.cleaned_data["telefone"]:
-                        # success = 4 means that the client already exists in the db and a message should be displayed
-                        success = 4
-                    else:
-                        # if the client is in the db but has a different phone number, adds a new instance to the db
-                        models.Cliente.objects.create(nome=form.cleaned_data["nome"].lower(),
-                                                      telefone=form.cleaned_data["telefone"],
-                                                      tipo=form.cleaned_data["tipo"],
-                                                      endereco=form.cleaned_data["endereco"].lower(),
-                                                      bairro=form.cleaned_data["bairro"],
-                                                      cidade=form.cleaned_data["cidade"].lower(),
-                                                      referencia=form.cleaned_data["referencia"].lower())
-                        # success = 2 means that the new client was added successfully
-                        success = 2
-                        # gets the id from the new client. this id will be passed to next view
-                        client_id = models.Cliente.objects.last()
-            else:
-                # if the client is not in the db, adds the client to the db
-                models.Cliente.objects.create(nome=form.cleaned_data["nome"].lower(),
-                                              telefone=form.cleaned_data["telefone"],
-                                              tipo=form.cleaned_data["tipo"],
-                                              endereco=form.cleaned_data["endereco"].lower(),
-                                              bairro=form.cleaned_data["bairro"],
-                                              cidade=form.cleaned_data["cidade"].lower(),
-                                              referencia=form.cleaned_data["referencia"].lower())
-                # success = 2 means that the new client was added successfully
-                success = 2
-                # gets the id from the new client. this id will be passed to next view
-                client_id = models.Cliente.objects.last()
-        else:
-            # success = 3 means that the form is not valid. displays a message indicating it to the user
-            success = 3
-    # adds context with success and client_id to the django template
-    context = {"success": success,
-               }
-    if client_id:
-        context["id"] = client_id.id
 
-    return TemplateResponse(request, "adicionar_cliente.html", context)
+    return TemplateResponse(request, "adicionar_cliente.html")
+
+
+@login_required
+def adicionar_fornecedor(request):
+    # initializes an empty cart list in the session as the view will redirect to a new order
+    request.session["cart"] = []
+    request.session["cart_serializer"] = []
+    # initializes an empty cart_user dictionary in the session as the view will redirect to a new order
+    request.session["cart_user"] = {}
+
+    return TemplateResponse(request, "adicionar_fornecedor.html")
 
 
 @login_required
