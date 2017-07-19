@@ -84,6 +84,11 @@ def finalizar_pedido(request):
 
 
 @login_required
+def nova_compra(request):
+    return TemplateResponse(request, "nova_compra.html")
+
+
+@login_required
 def novo_pedido(request):
     # gets all the distinct types of food categories
     types = models.Produto.objects.filter(~Q(tipo="bebida")).distinct("tipo").order_by("tipo")

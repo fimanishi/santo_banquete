@@ -1,0 +1,154 @@
+{% extends "base.html" %}{% load static %}
+
+{% block css %}
+  <link rel="stylesheet" type="text/css" href="/static/css/dist/css_datepicker/bootstrap-datepicker.min.css">
+  <link rel="stylesheet" type="text/css" href="/static/css/dist/css/bootstrap-select.min.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/adicionar_cliente.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/producao_react/main.affb6591.css"/>
+
+{% endblock %}
+
+
+{% block loggedin %}
+  <li><a>Usuário: {{ request.user.username }}</a></li>
+  <li><a href="/logout" style="text-decoration: underline;">Sair</a></li>
+{% endblock %}
+
+{% block content %}
+  <div class="my_menu">
+    <div id="adicionar_message"><h3>Nova Compra</h3></div>
+  </div>
+  <div class="my_menu2">
+    <div class="alert alert-info">Fornecedor: <span id="user"></span></div>
+  </div>
+  <div class="my_menu">
+    <form onsubmit="return validateForm()">
+      <div class="my_menu3">
+        <div>
+          <div style="margin-bottom: 5px;" class="last_production_line input-group">
+            <p style="padding-top: 5px;">Valor da Nota:</p>
+            <div>
+              <input id="nota" type="text" class="field_sizing form-control" placeholder="R$ 0,00" onkeypress='return event.charCode === 44 || (event.charCode >= 48 && event.charCode <= 57)' aria-describedby="basic-addon1" name="nota">
+            </div>
+          </div>
+        </div>
+        <br/>
+        <div>
+          <div style="margin-bottom: 5px;" class="last_production_line input-group">
+            <p style="padding-top: 5px;">Desconto:</p>
+            <div>
+              <input id="desconto" type="text" class="field_sizing form-control" placeholder="R$ 0,00" onkeypress='return event.charCode === 44 || (event.charCode >= 48 && event.charCode <= 57)' aria-describedby="basic-addon1" name="desconto">
+            </div>
+          </div>
+        </div>
+        <br/>
+        <div>
+          <div style="margin-bottom: 5px;" class="last_production_line input-group">
+            <p style="padding-top: 5px;">Imposto:</p>
+            <div>
+              <input id="imposto" type="text" class="field_sizing form-control" placeholder="R$ 0,00" onkeypress='return event.charCode === 44 || (event.charCode >= 48 && event.charCode <= 57)' aria-describedby="basic-addon1" name="imposto">
+            </div>
+          </div>
+        </div>
+      </div>
+      <br/>
+      <div class="my_menu2">
+        <button style="margin: 5px 0 5px 0;" type="submit" class="btn btn-danger btn-block" name="button">Adicionar Ingredientes</button>
+      </div>
+    </form>
+    {#  MODAL  #}
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">Confirmar Produção</h4>
+          </div>
+          <div class="modal-body">
+            Deseja adicionar a nota abaixo?<br><br>
+            Nota:     R$ <span id="nota_modal"></span><br>
+            Desconto: R$ <span id="desconto_modal"></span><br/>
+            Imposto:  R$ <span id="imposto_modal"></span><br/>
+            Total:    R$ <span id="total_modal"></span>
+          </div>
+          <div class="modal-footer">
+            <form id="modal_form">
+              <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="rejectModal()" value="no">Nao</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="confirmModal()" value="yes">Sim</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {# END OF MODAL   #}
+  </div>
+    {# placeholder for react results #}
+    <div id="result_list"></div>
+{% endblock %}
+
+
+{% block script %}
+  <script src="/static/js/js/bootstrap-select.min.js"></script>
+  <script src="/static/js/js_datepicker/bootstrap-datepicker.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
+  <script src="/static/js/nova_compra_react/main.f0061604.js"></script>
+  <script>
+    // creates an object with the types as keys and products as values
+    document.getElementById("user").innerHTML = sessionStorage.getItem("fornecedor_name");
+
+    function validateForm() {
+      var nota = document.getElementById("nota").value;
+      var desc = document.getElementById("desconto").value;
+      var imp = document.getElementById("imposto").value;
+      if (nota){
+        console.log("test");
+        if (!desc){
+          desc = "0,00";
+        }
+        if (!imp){
+          imp = "0,00";
+        }
+        var net = parseFloat(nota.replace(",", ".")) - parseFloat(desc.replace(",", ".")) + parseFloat(imp.replace(",", "."));
+        net = String(net).replace(".", ",");
+        document.getElementById("nota_modal").innerHTML = nota;
+        document.getElementById("desconto_modal").innerHTML = desc;
+        document.getElementById("imposto_modal").innerHTML = imp;
+        document.getElementById("total_modal").innerHTML = net;
+        $("#myModal").modal();
+      }
+      else {
+        store.dispatch(updateFiltered("add"));
+      }
+      return false;
+    }
+
+    function confirmModal() {
+      var data = {};
+      data.id = sessionStorage.getItem("fornecedor_id");
+      data.nota = document.getElementById("nota").value;
+      data.desconto = document.getElementById("desconto").value;
+      data.imposto = document.getElementById("imposto").value;
+      data.fornecedor = sessionStorage.getItem("fornecedor_id");
+      document.getElementById("nota").value = "";
+      document.getElementById("desconto").value = "";
+      document.getElementById("imposto").value = "";
+      axios.post("/nova_compra/add/", data)
+        .then(function(result){
+          sessionStorage.setItem("ratio", result.data);
+          window.location.href = "/estoque/";
+        })
+        .catch(function(error){
+          store.dispatch(updateFiltered([], "fail"));
+        });
+    }
+
+    function rejectModal() {
+      modal_check = false;
+      document.getElementById("nota").value = "";
+      document.getElementById("desconto").value = "";
+      document.getElementById("imposto").value = "";
+    }
+
+
+  </script>
+{% endblock %}

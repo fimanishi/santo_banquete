@@ -113,6 +113,7 @@ class IdSerializer (serializers.Serializer):
 
 
 class FornecedorSearchSerializer (serializers.Serializer):
+    id = serializers.IntegerField(required=False)
     nome = serializers.CharField(max_length=60, required=False, allow_blank=True)
     contato = serializers.CharField(max_length=20, required=False, allow_blank=True)
     telefone = serializers.CharField(max_length=20, required=False, allow_blank=True)
@@ -123,3 +124,10 @@ class FornecedorSearchSerializer (serializers.Serializer):
     razao_social = serializers.CharField(max_length=60, required=False, allow_blank=True)
     cnpj = serializers.CharField(max_length=20, required=False, allow_blank=True)
     whatsapp = serializers.CharField(max_length=20, required=False, allow_blank=True)
+
+
+class CompraSerializer (serializers.Serializer):
+    id = serializers.IntegerField()
+    nota = serializers.DecimalField(decimal_places=2, localize=True, max_digits=7)
+    imposto = serializers.DecimalField(decimal_places=2, localize=True, max_digits=7)
+    desconto = serializers.DecimalField(decimal_places=2, localize=True, max_digits=7)

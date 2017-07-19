@@ -192,9 +192,9 @@ def escolher_fornecedor_filter(request):
             if filtered:
                 for i in filtered:
                     filtered_json.append({"id": i.id, "nome": i.nome.title(), "telefone": i.telefone,
-                                          "endereco": i.endereco.title(), "bairro": i.bairro,
-                                          "cidade": i.cidade.title(), "contato": i.contato})
-                s = website.serializer.ClienteSerializer(filtered_json, many=True)
+                                          "endereco": i.endereco.title(), "estado": i.estado.upper(),
+                                          "cidade": i.cidade.title(), "contato": i.contato.title()})
+                s = website.serializer.FornecedorSearchSerializer(filtered_json, many=True)
                 return Response(s.data)
             else:
                 return Response("empty")
@@ -468,6 +468,23 @@ def cliente_update(request):
 
 @api_view(["POST"])
 @login_required
+def fornecedor_update(request):
+    if request.method == "POST":
+        serializer = website.serializer.FornecedorSearchSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            fornecedor = models.Fornecedor.objects.get(id=serializer.validated_data["id"])
+            fornecedor.nome = serializer.validated_data["nome"].lower()
+            fornecedor.telefone = serializer.validated_data["telefone"]
+            fornecedor.endereco = serializer.validated_data["endereco"].lower()
+            fornecedor.estado = serializer.validated_data["estado"].lower()
+            fornecedor.cidade = serializer.validated_data["cidade"].lower()
+            fornecedor.contato = serializer.validated_data["contato"].lower()
+            fornecedor.save()
+            return Response(True)
+
+
+@api_view(["POST"])
+@login_required
 def novo_pedido_add(request):
     if request.method == "POST":
         # gets tipo, produto and quantidade from ProducaoData form
@@ -532,3 +549,25 @@ def cart_user(request):
             request.session["cart_user"] = user_json
             request.session.save()
             return Response(True)
+
+
+@api_view(["POST"])
+@login_required
+def nova_compra_add(request):
+    if request.method == "POST":
+        serializer=website.serializer.CompraSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            fornecedor = models.Fornecedor.objects.get(id=serializer.validated_data["id"])
+            models.Compra.objects.create(fornecedor=fornecedor,
+                                         nota=serializer.validated_data["nota"],
+                                         desconto=serializer.validated_data["desconto"],
+                                         imposto=serializer.validated_data["imposto"],
+                                         total=serializer.validated_data["nota"] -
+                                               serializer.validated_data["desconto"] +
+                                               serializer.validated_data["imposto"],
+                                         usuario=request.user,
+                                         )
+            ratio = (serializer.validated_data["nota"] +
+                     serializer.validated_data["imposto"] -
+                     serializer.validated_data["desconto"]) / serializer.validated_data["nota"]
+            return Response(ratio)

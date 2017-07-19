@@ -44,7 +44,7 @@
 
 {% block script %}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
-  <script src="/static/js/escolher_fornecedor_react/main.b2ced1d0.js"></script>
+  <script src="/static/js/escolher_fornecedor_react/main.96f1fcb4.js"></script>
   <script>
 
     function validateForm() {
@@ -52,6 +52,8 @@
       data.nome = document.getElementById("nome").value;
       data.contato = document.getElementById("contato").value;
       if (data.nome || data.contato){
+        document.getElementById("nome").value = "";
+        document.getElementById("contato").value = "";
         axios.post("/escolher_fornecedor/filter/", data)
           .then(function(result){
             try {

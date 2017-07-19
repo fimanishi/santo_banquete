@@ -55,7 +55,9 @@ urlpatterns = [
     url(r'^cart_user/$', website.views_api.cart_user, name="cart_user"),
     url(r'^adicionar_fornecedor/$', website.views.adicionar_fornecedor, name="adicionar_fornecedor"),
     url(r'^fornecedor/add/$', website.views_api.fornecedor_add, name="fornecedor_add"),
-
+    url(r'^fornecedor/update/$', website.views_api.fornecedor_update, name="fornecedor_update"),
+    url(r'^nova_compra/$', website.views.nova_compra, name="nova_compra"),
+    url(r'^nova_compra/add/$', website.views_api.nova_compra_add, name="nova_compra_add"),
 
 
 ]

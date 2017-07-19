@@ -172,8 +172,8 @@
       radio.forEach(function(item){item.checked = false});
       axios.post("/fornecedor/add/", data)
         .then(function(result){
-          sessionStorage.setItem("supplier_id", result.data.id);
-          sessionStorage.setItem("supplier_name", result.data.nome);
+          sessionStorage.setItem("fornecedor_id", result.data.id);
+          sessionStorage.setItem("fornecedor_name", result.data.nome);
           store.dispatch(updateFiltered(result.data.message));
         })
         .catch(function(error){

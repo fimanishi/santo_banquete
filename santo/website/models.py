@@ -73,3 +73,15 @@ class Fornecedor(models.Model):
     telefone = models.CharField(max_length=20)
     whatsapp = models.CharField(max_length=20)
     contato = models.CharField(max_length=60)
+
+
+class Compra(models.Model):
+    class Meta:
+        db_table = "compra"
+    fornecedor = models.ForeignKey(Fornecedor, on_delete=models.CASCADE)
+    nota = models.FloatField()
+    desconto = models.FloatField()
+    imposto = models.FloatField()
+    total = models.FloatField()
+    data = models.DateField(auto_now_add=True)
+    usuario = models.CharField(max_length=30)
