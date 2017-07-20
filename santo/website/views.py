@@ -191,35 +191,8 @@ def escolher_fornecedor(request):
     # initializes an empty cart list in the session as the view will redirect to a new order
     request.session["cart"] = []
     # initializes an empty cart_user dictionary in the session as the view will redirect to a new order
-    request.session["cart_supplier"] = {}
-    # initializes an empty list that will receive filtered items from db
-    filtered = []
-    # if the current view was the referer
-    if request.method == "GET":
-        # gets cliente from ClienteSearch form
-        form = website.forms.ClienteSearch(request.GET or None)
-        if form.is_valid():
-            # success = 2 means that the validation passed and matches to the filter were found
-            success = 2
-            # if the user inputs nome and telefone, filters for a match for both
-            if form.cleaned_data["nome"] and form.cleaned_data["telefone"]:
-                filtered = models.Cliente.objects.filter(nome__icontains=form.cleaned_data["nome"],
-                                                         telefone=form.cleaned_data["telefone"])
-            # if the user inputs nome, filters for a match that contains nome
-            elif form.cleaned_data["nome"]:
-                filtered = models.Cliente.objects.filter(nome__icontains=form.cleaned_data["nome"])
-            # if the user inputs telefone, filters for a match for the telefone
-            elif form.cleaned_data["telefone"]:
-                filtered = models.Cliente.objects.filter(telefone=form.cleaned_data["telefone"])
-            # if no matches were found
-            if not filtered:
-                # success = 3 means that no matches were found and display a message indicating it
-                success = 3
-        else:
-            # success = 4 means that the form ClienteSearch is not valid. displays a message indicating it to the user
-            success = 4
-            # adds the filtered list and success status to the django template
-    context = {"filtered": filtered, "success": success}
+    request.session["cart_user"] = {}
+    request.session["cart_serializer"] = []
     return TemplateResponse(request, "escolher_fornecedor.html")
 
 # def hello(request):

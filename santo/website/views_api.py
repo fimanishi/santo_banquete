@@ -19,6 +19,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
+from decimal import *
 
 
 # Create your views here.
@@ -361,29 +362,82 @@ def producao_estoque(request):
 
 @api_view(["POST"])
 @login_required
+def estoque_add_finish(request):
+    if request.method == "POST":
+        serializer = website.serializer.ConfirmSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # gets id, tipo, ingrediente, quantidade, valor, data and action from EstoqueSerializer
+            for item in request.session["cart"]:
+                # gets the object that matches the ingrediente selection
+                ingredient_id = models.Ingrediente.objects.get(nome=item["ingrediente"])
+                # updates quantidada in estoque
+                ingredient_id.estoque += Decimal(item["quantidade"])
+                # updates quantidade in total_comprado
+                ingredient_id.total_comprado += Decimal(item["quantidade"])
+                # updates the date in ultima_compra
+                ingredient_id.ultima_compra = date.today()
+                # updates valor in valor_comprado
+                ingredient_id.valor_comprado += Decimal(item["valor"]) * request.session["ratio"]
+                # updates the calculation of preco_medio
+                try:
+                    ingredient_id.preco_medio = ingredient_id.valor_comprado / ingredient_id.total_comprado
+                except ZeroDivisionError:
+                    ingredient_id.preco_medio = 0
+                ingredient_id.save()
+            return Response("added")
+
+
+@api_view(["POST"])
+@login_required
 def estoque_add(request):
     if request.method == "POST":
         # gets id, tipo, ingrediente, quantidade, valor, data and action from EstoqueSerializer
         serializer = website.serializer.EstoqueSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             # gets the object that matches the ingrediente selection
-            ingredient_id = models.Ingrediente.objects.get(nome=serializer.validated_data["ingrediente"])
-            # updates quantidada in estoque
-            ingredient_id.estoque += serializer.validated_data["quantidade"]
-            # updates quantidade in total_comprado
-            ingredient_id.total_comprado += serializer.validated_data["quantidade"]
-            # updates the date in ultima_compra
-            ingredient_id.ultima_compra = date.today()
-            # updates valor in valor_comprado
-            ingredient_id.valor_comprado += serializer.validated_data["valor"]
-            # updates the calculation of preco_medio
-            try:
-                ingredient_id.preco_medio = ingredient_id.valor_comprado / ingredient_id.total_comprado
-            except ZeroDivisionError:
-                ingredient_id.preco_medio = 0
+            request.session["cart"].append({"ingrediente": serializer.validated_data["ingrediente"],
+                                            "quantidade": float(serializer.validated_data["quantidade"]),
+                                            "valor": float(serializer.validated_data["valor"])
+                                            })
+            request.session.save()
+            s = website.serializer.EstoqueSerializer(request.session["cart"], many=True)
+            print(s.data)
+            return Response(s.data)
 
-            ingredient_id.save()
-            return Response("added")
+
+@api_view(["POST"])
+@login_required
+def estoque_add_update(request):
+    if request.method == "POST":
+        # gets id, tipo, ingrediente, quantidade, valor, data and action from EstoqueSerializer
+        serializer = website.serializer.EstoqueSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # gets the object that matches the ingrediente selection
+            for item in request.session["cart"]:
+                if item["ingrediente"] == serializer.validated_data["ingrediente"]:
+                    item["quantidade"] = float(serializer.validated_data["quantidade"])
+                    item["valor"] = float(serializer.validated_data["valor"])
+                    break
+            request.session.save()
+            s = website.serializer.EstoqueSerializer(request.session["cart"], many=True)
+            return Response(s.data)
+
+
+@api_view(["POST"])
+@login_required
+def estoque_add_delete(request):
+    if request.method == "POST":
+        # gets id, tipo, ingrediente, quantidade, valor, data and action from EstoqueSerializer
+        serializer = website.serializer.EstoqueSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # gets the object that matches the ingrediente selection
+            for item in request.session["cart"]:
+                if item["ingrediente"] == serializer.validated_data["ingrediente"]:
+                    request.session["cart"].remove(item)
+                    break
+            request.session.save()
+            s = website.serializer.EstoqueSerializer(request.session["cart"], many=True)
+            return Response(s.data)
 
 
 # to be completed
@@ -495,8 +549,6 @@ def novo_pedido_add(request):
             request.session["cart"].append({"produto": serializer.validated_data["produto"],
                                             "quantidade": float(serializer.validated_data["quantidade"])})
             serialized_session = website.serializer.ListPedidoSerializer({"cart": request.session["cart_serializer"]})
-            print(request.session["cart"])
-            print(request.session["cart_serializer"])
             request.session.save()
             return Response(serialized_session.data)
         else:
@@ -570,4 +622,6 @@ def nova_compra_add(request):
             ratio = (serializer.validated_data["nota"] +
                      serializer.validated_data["imposto"] -
                      serializer.validated_data["desconto"]) / serializer.validated_data["nota"]
+            request.session["ratio"] = ratio
+            request.session.save()
             return Response(ratio)

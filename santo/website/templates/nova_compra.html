@@ -101,7 +101,6 @@
       var desc = document.getElementById("desconto").value;
       var imp = document.getElementById("imposto").value;
       if (nota){
-        console.log("test");
         if (!desc){
           desc = "0,00";
         }
@@ -128,6 +127,12 @@
       data.nota = document.getElementById("nota").value;
       data.desconto = document.getElementById("desconto").value;
       data.imposto = document.getElementById("imposto").value;
+      if (!data.desconto){
+        data.desconto = "0,00";
+      }
+      if (!data.imposto){
+        data.imposto = "0,00";
+      }
       data.fornecedor = sessionStorage.getItem("fornecedor_id");
       document.getElementById("nota").value = "";
       document.getElementById("desconto").value = "";

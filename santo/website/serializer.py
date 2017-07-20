@@ -131,3 +131,7 @@ class CompraSerializer (serializers.Serializer):
     nota = serializers.DecimalField(decimal_places=2, localize=True, max_digits=7)
     imposto = serializers.DecimalField(decimal_places=2, localize=True, max_digits=7)
     desconto = serializers.DecimalField(decimal_places=2, localize=True, max_digits=7)
+
+
+class ConfirmSerializer (serializers.Serializer):
+    confirm = serializers.CharField(max_length=10, required=False, allow_blank=True)
