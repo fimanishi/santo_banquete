@@ -31,6 +31,12 @@ In the menu you can choose to create a new order, record production or update th
 
 You can choose to update the stock with new items that were bought or to visualize and update the stock based on the routine checks that are done. In this case, the item was filtered and the update button was clicked, allowing the user to change the current value for the item in stock.
 
+<p align="center">
+<img src="https://github.com/fimanishi/santo_banquete/blob/master/files/Images/Screen%20Shot%202017-07-19%20at%2011.20.52%20PM.png">
+
+<img src="https://github.com/fimanishi/santo_banquete/blob/master/files/Images/Screen%20Shot%202017-07-19%20at%2011.21.15%20PM.png">
+</p>
+
 The other modules function in a similar way, always prompting modals to check if the user wants to do the action requested and also gives him/her the ability to create and update items whenever necessary.
 
 # challenges
