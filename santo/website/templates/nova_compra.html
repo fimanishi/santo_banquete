@@ -139,7 +139,6 @@
       document.getElementById("imposto").value = "";
       axios.post("/nova_compra/add/", data)
         .then(function(result){
-          sessionStorage.setItem("ratio", result.data);
           window.location.href = "/estoque/";
         })
         .catch(function(error){

@@ -377,10 +377,10 @@ def estoque_add_finish(request):
                 # updates the date in ultima_compra
                 ingredient_id.ultima_compra = date.today()
                 # updates valor in valor_comprado
-                ingredient_id.valor_comprado += Decimal(item["valor"]) * request.session["ratio"]
+                ingredient_id.valor_comprado += round(Decimal(item["valor"]) * Decimal(request.session["ratio"]),2)
                 # updates the calculation of preco_medio
                 try:
-                    ingredient_id.preco_medio = ingredient_id.valor_comprado / ingredient_id.total_comprado
+                    ingredient_id.preco_medio = round(ingredient_id.valor_comprado / ingredient_id.total_comprado,2)
                 except ZeroDivisionError:
                     ingredient_id.preco_medio = 0
                 ingredient_id.save()
@@ -622,6 +622,6 @@ def nova_compra_add(request):
             ratio = (serializer.validated_data["nota"] +
                      serializer.validated_data["imposto"] -
                      serializer.validated_data["desconto"]) / serializer.validated_data["nota"]
-            request.session["ratio"] = ratio
+            request.session["ratio"] = float(ratio)
             request.session.save()
             return Response(ratio)

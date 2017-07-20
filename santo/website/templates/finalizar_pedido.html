@@ -18,7 +18,7 @@
     <div id="adicionar_message"><h3>Finalizar Pedido</h3></div>
   </div>
   <div style="margin-bottom: 0" class="my_menu2">
-    <div class="alert alert-info">Cliente: {{ cliente.nome | title}}</div>
+    <div class="alert alert-info">Cliente: <span id="user"></span></div>
   </div>
   <div class="my_menu2">
     <p>Delivery:</p>
@@ -38,7 +38,7 @@
     </div>
   </div>
   <div style="margin: 20px auto 0 auto;" class="my_menu2">
-    <div class="alert alert-success"><span style="margin-right: 10px;">Subtotal</span><span style="margin-left: 10px;">R$ <span id="subtotal">{% load display_decimals %}{{ subtotal|display_decimals }}</span></span></div>
+    <div class="alert alert-success"><span style="margin-right: 10px;">Subtotal</span><span style="margin-left: 10px;">R$ <span id="subtotal"></span></span></div>
   </div>
   <div class="my_menu2">
     <h5>Detalhes do pedido:</h5>
@@ -50,24 +50,24 @@
 {#      </div>#}
 {#    {% endif %}#}
 
-    <form name="toDelete" method="POST" onsubmit="return false;">
-      {% for i in cart %}
-        <div class="filtered">
-          <div class="alert alert-info" role="alert">
-            <div style="display: flex;">
-              <div class="listing">
-                <p><strong>Produto:</strong></p>
-                <p>{{ i.produto|title }}</p>
-              </div>
-              <div class="listing">
-                <p><strong>Quantidade:</strong></p>
-                <p style="padding-left:50px;">{{ i.quantity }}<button type="submit" style="float: right" class="glyphicon glyphicon-remove" aria-hidden="true" value={{ i.id }} onclick="removeItem(event)"></button></p>
-              </div>
-            </div>
-          </div>
-        </div>
-      {% endfor %}
-    </form>
+{#    <form name="toDelete" method="POST" onsubmit="return false;">#}
+{#      {% for i in cart %}#}
+{#        <div class="filtered">#}
+{#          <div class="alert alert-info" role="alert">#}
+{#            <div style="display: flex;">#}
+{#              <div class="listing">#}
+{#                <p><strong>Produto:</strong></p>#}
+{#                <p>{{ i.produto|title }}</p>#}
+{#              </div>#}
+{#              <div class="listing">#}
+{#                <p><strong>Quantidade:</strong></p>#}
+{#                <p style="padding-left:50px;">{{ i.quantity }}<button type="submit" style="float: right" class="glyphicon glyphicon-remove" aria-hidden="true" value={{ i.id }} onclick="removeItem(event)"></button></p>#}
+{#              </div>#}
+{#            </div>#}
+{#          </div>#}
+{#        </div>#}
+{#      {% endfor %}#}
+{#    </form>#}
     <form method="POST" action="/finalizar_pedido/">
       <div class="my_menu2">
         <button type="submit" class="btn btn-danger" name="button" value="add">Finalizar pedido</button>
@@ -84,7 +84,7 @@
   <script>
     $('.datepicker').datepicker();
     // creates an object with the types as keys and products as values
-
+    document.getElementById("user").innerHTML = sessionStorage.getItem("client_name");
     function updateDelivery(){
       var data = {};
       data["delivery"] = document.activeElement.value;

@@ -94,7 +94,7 @@
 {% block script %}
   <script src="/static/js/js/bootstrap-select.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
-  <script src="/static/js/estoque_add_react/main.eb5ca718.js"></script>
+  <script src="/static/js/estoque_add_react/main.e309b5e5.js"></script>
   <script>
 
     // creates an object with the types as keys and products as values
@@ -157,10 +157,8 @@
       document.getElementById("quantidade_value").value = "";
       document.getElementById("valor").value = "";
       document.getElementById("unidade").value = "";
-      console.log("test");
       axios.post("/estoque/add/", data)
         .then(function(result){
-          console.log(result.data);
           store.dispatch(updateFiltered(result.data, ""));
         })
         .catch(function(error){

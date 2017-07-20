@@ -73,14 +73,7 @@ def pedidos(request):
 
 @login_required
 def finalizar_pedido(request):
-    subtotal = 0
-    for item in request.session["cart"]:
-        subtotal += item["cost"] * item["quantity"]
-    context = {}
-    context["cliente"] = request.session["cart_user"]
-    context["cart"] = request.session["cart"]
-    context["subtotal"] = subtotal
-    return TemplateResponse(request, "finalizar_pedido.html", context)
+    return TemplateResponse(request, "finalizar_pedido.html")
 
 
 @login_required
