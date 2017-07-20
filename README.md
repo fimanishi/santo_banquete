@@ -18,3 +18,9 @@ The last step was to render changes made by the user in the same page without th
 First, you must have an user and password to be able to login. The app will be used internally by very few people, so it's important to have security over the data and prevent the access from unknown people.
 
 The initial page has a simple menu that guides the user through all the app modules. It's all in Portuguese because the company is in Brazil.
+
+<p align="center">
+  <img src="https://github.com/fimanishi/santo_banquete/blob/master/files/Images/Screen%20Shot%202017-07-19%20at%2010.57.06%20PM.png?  raw=true">
+</p>
+
+In the menu you can choose to create a new order, record production or update the stock. The other functions are not available now. For example, this is an example of adding materials to the stock.
