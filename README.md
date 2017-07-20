@@ -24,3 +24,19 @@ The initial page has a simple menu that guides the user through all the app modu
 </p>
 
 In the menu you can choose to create a new order, record production or update the stock. The other functions are not available now. For example, this is an example of adding materials to the stock.
+
+<p align="center">
+  <img src="https://github.com/fimanishi/santo_banquete/blob/master/files/Images/Screen%20Shot%202017-07-19%20at%2011.15.17%20PM.png">
+</p>
+
+You can choose to update the stock with new items that were bought or to visualize and update the stock based on the routine checks that are done. In this case, the item was filtered and the update button was clicked, allowing the user to change the current value for the item in stock.
+
+The other modules function in a similar way, always prompting modals to check if the user wants to do the action requested and also gives him/her the ability to create and update items whenever necessary.
+
+# challenges
+
+This is quite an extensive project that hasn't been finalized yet. It started only with PostgreSQL and Django, adding Rest and React later. Adding them was quite challenging. I had to learn how to use the serializers in Rest to be able to use APIs and JSON. It required refactoring a big part of the code in Django. Now, pretty much all the data that move from backend to frontend and vice versa is done using APIs.
+
+Adding React was also a big important step in the project. I knew that I wanted the app to be more responsive and React was the right tool for it. But most of the html and CSS were ready, so I decided to use React in only part of the frontend. It was also on purpose for me to create a situation that is probably different from a website fully created using only react. Initially it was complicated to pass data from React to other parts of the app, but after doing a few times, it became quite simple and quick. The downside of having only part of the app with React is that there is a need to build and import every time to test it.
+
+Another challenge that I encountered was to have some data available for multiple views and also create a virtual cart that did not update the database until the user was ready to do so. For that, I used the API and the session storage in the browser and in Django. It proved to be really useful event though the session in Django is not able to store Decimal values and the session in the browser has array limitation.
