@@ -106,6 +106,7 @@ class PedidoSerializer (serializers.Serializer):
 
 class ListPedidoSerializer (serializers.Serializer):
     cart = serializers.ListField()
+    total = serializers.DecimalField(decimal_places=2, localize=True, max_digits=5)
 
 
 class IdSerializer (serializers.Serializer):

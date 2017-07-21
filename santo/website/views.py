@@ -73,7 +73,11 @@ def pedidos(request):
 
 @login_required
 def finalizar_pedido(request):
-    return TemplateResponse(request, "finalizar_pedido.html")
+    context = {
+        "cliente": request.session["cart_user"],
+        "subtotal": request.session["cart_total"]
+    }
+    return TemplateResponse(request, "finalizar_pedido.html", context)
 
 
 @login_required
@@ -104,6 +108,7 @@ def escolher_cliente(request):
     # initializes an empty cart list in the session as the view will redirect to a new order
     request.session["cart"] = []
     request.session["cart_serializer"] = []
+    request.session["cart_total"] = 0
     # initializes an empty cart_user dictionary in the session as the view will redirect to a new order
     request.session["cart_user"] = {}
     return TemplateResponse(request, "escolher_cliente.html")

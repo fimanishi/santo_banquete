@@ -4,6 +4,7 @@
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css_datepicker/bootstrap-datepicker.min.css">
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css/bootstrap-select.min.css" />
   <link rel="stylesheet" type="text/css" href="/static/css/adicionar_cliente.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/finalizar_pedido_react/main.1f83477e.css"/>
 
 {% endblock %}
 
@@ -18,7 +19,7 @@
     <div id="adicionar_message"><h3>Finalizar Pedido</h3></div>
   </div>
   <div style="margin-bottom: 0" class="my_menu2">
-    <div class="alert alert-info">Cliente: <span id="user"></span></div>
+    <div class="alert alert-info">Cliente: {{ cliente.nome | title}}</div>
   </div>
   <div class="my_menu2">
     <p>Delivery:</p>
@@ -38,42 +39,13 @@
     </div>
   </div>
   <div style="margin: 20px auto 0 auto;" class="my_menu2">
-    <div class="alert alert-success"><span style="margin-right: 10px;">Subtotal</span><span style="margin-left: 10px;">R$ <span id="subtotal"></span></span></div>
+    <div class="alert alert-success"><span style="margin-right: 10px;">Subtotal</span><span style="margin-left: 10px;">R$ <span id="subtotal">{% load display_decimals %}{{ subtotal|display_decimals }}</span></span></div>
   </div>
   <div class="my_menu2">
     <h5>Detalhes do pedido:</h5>
   </div>
-  <div>
-{#    {% if success == 3 %}#}
-{#      <div class="my_menu2">#}
-{#        <div style="margin-top: 20px;" class="alert alert-danger">Preencha todos os campos</div>#}
-{#      </div>#}
-{#    {% endif %}#}
-
-{#    <form name="toDelete" method="POST" onsubmit="return false;">#}
-{#      {% for i in cart %}#}
-{#        <div class="filtered">#}
-{#          <div class="alert alert-info" role="alert">#}
-{#            <div style="display: flex;">#}
-{#              <div class="listing">#}
-{#                <p><strong>Produto:</strong></p>#}
-{#                <p>{{ i.produto|title }}</p>#}
-{#              </div>#}
-{#              <div class="listing">#}
-{#                <p><strong>Quantidade:</strong></p>#}
-{#                <p style="padding-left:50px;">{{ i.quantity }}<button type="submit" style="float: right" class="glyphicon glyphicon-remove" aria-hidden="true" value={{ i.id }} onclick="removeItem(event)"></button></p>#}
-{#              </div>#}
-{#            </div>#}
-{#          </div>#}
-{#        </div>#}
-{#      {% endfor %}#}
-{#    </form>#}
-    <form method="POST" action="/finalizar_pedido/">
-      <div class="my_menu2">
-        <button type="submit" class="btn btn-danger" name="button" value="add">Finalizar pedido</button>
-      </div>
-    </form>
-  </div>
+  {# placeholder for react results #}
+  <div id="result_list"></div>
 {% endblock %}
 
 
@@ -81,10 +53,26 @@
   <script src="/static/js/js/bootstrap-select.min.js"></script>
   <script src="/static/js/js_datepicker/bootstrap-datepicker.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
+  <script src="/static/js/finalizar_pedido_react/main.dc855a92.js"></script>
   <script>
     $('.datepicker').datepicker();
     // creates an object with the types as keys and products as values
-    document.getElementById("user").innerHTML = sessionStorage.getItem("client_name");
+
+    function initList (){
+      console.log("test");
+      axios.post("/finalizar_pedido/init/")
+        .then(function (result) {
+          console.log(result.data);
+          store.dispatch(updateFiltered(result.data.cart, "list"));
+        })
+        .catch(function (error) {
+          console.log(error);
+          store.dispatch(updateFiltered([], "fail"))
+        })
+    }
+
+    initList();
+
     function updateDelivery(){
       var data = {};
       data["delivery"] = document.activeElement.value;

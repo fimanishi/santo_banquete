@@ -55,6 +55,7 @@ urlpatterns = [
     url(r'^cliente/add/$', website.views_api.cliente_add, name="cliente_add"),
     url(r'^finalizar_pedido/delivery/$', website.views_api.finalizar_pedido_delivery, name="finalizar_pedido_delivery"),
     url(r'^finalizar_pedido/$', website.views.finalizar_pedido, name="finalizar_pedido"),
+    url(r'^finalizar_pedido/init/$', website.views_api.finalizar_pedido_init, name="finalizar_pedido_init"),
     url(r'^cart_user/$', website.views_api.cart_user, name="cart_user"),
     url(r'^adicionar_fornecedor/$', website.views.adicionar_fornecedor, name="adicionar_fornecedor"),
     url(r'^fornecedor/add/$', website.views_api.fornecedor_add, name="fornecedor_add"),
