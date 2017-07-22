@@ -547,9 +547,9 @@ def novo_pedido_add(request):
             produto = models.Produto.objects.get(nome=serializer.validated_data["produto"])
             request.session["cart_serializer"].append(
                 {"produto": serializer.validated_data["produto"],
-                 "quantidade": '{:.3f}'.format(serializer.validated_data["quantidade"]).replace(".", ","),
-                 "valor": '{:.2f}'.format(produto.valor).replace(".", ","),
-                 "total": '{:.2f}'.format(produto.valor * serializer.validated_data["quantidade"]).replace(".", ",")})
+                 "quantidade": "{:.1f}".format(serializer.validated_data["quantidade"]).replace(".", ","),
+                 "valor": "{:.2f}".format(produto.valor).replace(".", ","),
+                 "total": "{:.2f}".format(produto.valor * serializer.validated_data["quantidade"]).replace(".", ",")})
             request.session["cart"].append({
                 "produto": serializer.validated_data["produto"],
                 "quantidade": float(serializer.validated_data["quantidade"]),
@@ -596,11 +596,16 @@ def novo_pedido_update(request):
             for i in range(len(request.session["cart"])):
                 if request.session["cart"][i]["produto"] == serializer.validated_data["produto"]:
                     produto = models.Produto.objects.get(nome=serializer.validated_data["produto"])
-                    request.session["cart_total"] -= float(produto.valor * request.session["cart"][i]["quantidade"])
+                    request.session["cart_total"] -= float(produto.valor) * request.session["cart"][i]["quantidade"]
                     request.session["cart"][i]["quantidade"] = float(serializer.validated_data["quantidade"])
-                    request.session["cart_serializer"][i]["quantidade"] = str(serializer.validated_data["quantidade"]).replace(".", ",")
+                    request.session["cart_serializer"][i]["quantidade"] = "{:.1f}".format(
+                        serializer.validated_data["quantidade"]).replace(".", ",")
+                    request.session["cart"][i]["total"] = float(produto.valor * serializer.validated_data["quantidade"])
+                    request.session["cart_serializer"][i]["total"] = "{:.2f}".format(
+                        produto.valor * serializer.validated_data["quantidade"]).replace(".", ",")
                     request.session["cart_total"] += float(produto.valor * serializer.validated_data["quantidade"])
                     request.session.save()
+                    print(request.session["cart_serializer"][i]["total"])
                     serialized_session = website.serializer.ListPedidoSerializer({
                         "cart": request.session["cart_serializer"], "total": request.session["cart_total"]})
                     return Response(serialized_session.data)
