@@ -111,19 +111,31 @@ def fornecedor_add(request):
                 return Response({"id": supplier.id, "nome": supplier.nome.title(), "message": "added"})
 
 
-# need to create API to update subtotal based on delivery
 @api_view(["POST"])
 @login_required
-def finalizar_pedido_delivery_add(request):
-    check = re.search(r"finalizar_pedido", referer)
-    if request.method == "POST" and check:
-        pass
-    elif request.method == "POST":
-        pass
-    context = {}
-    context["cliente"] = request.session["cart_user"]
-    context["cart"] = request.session["cart"]
-    return TemplateResponse(request, "finalizar_pedido.html", context)
+def finalizar_pedido_delivery_update(request):
+    if request.method == "POST":
+        serializer = website.serializer.DeliverySerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            if request.session["delivery"] == 0:
+                request.session["delivery"] = float(serializer.validated_data["valor"])
+                request.session["cart_total"] += float(serializer.validated_data["valor"])
+            else:
+                request.session["cart_total"] += float(serializer.validated_data["valor"]) - request.session["delivery"]
+                request.session["delivery"] = float(serializer.validated_data["valor"])
+            request.session.save()
+            s = website.serializer.DeliverySerializer({"valor": request.session["cart_total"]})
+            return Response(s.data)
+
+
+@api_view(["POST"])
+@login_required
+def finalizar_pedido_finish(request):
+    if request.method == "POST":
+        if len(request.session["cart"]) > 0:
+            pass
+        else:
+            return Response("failure")
 
 
 @api_view(["POST"])
@@ -377,7 +389,6 @@ def estoque_add(request):
     if request.method == "POST":
         # gets id, tipo, ingrediente, quantidade, valor, data and action from EstoqueSerializer
         serializer = website.serializer.EstoqueSerializer(data=request.data)
-        print(serializer)
         if serializer.is_valid(raise_exception=True):
             # gets the object that matches the ingrediente selection
             request.session["cart"].append({"ingrediente": serializer.validated_data["ingrediente"],
@@ -400,7 +411,6 @@ def estoque_add_update(request):
     if request.method == "POST":
         # gets id, tipo, ingrediente, quantidade, valor, data and action from EstoqueSerializer
         serializer = website.serializer.EstoqueSerializer(data=request.data)
-        print(serializer)
         if serializer.is_valid(raise_exception=True):
             # gets the object that matches the ingrediente selection
             for item in request.session["cart"]:
@@ -450,7 +460,6 @@ def estoque_filter(request):
         serializer = website.serializer.EstoqueSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             # if the user filters by date
-            print(serializer.validated_data["data_field"])
             if serializer.validated_data["data_field"] > date(1900, 1, 1):
                 # if the user also filters by ingrediente
                 if serializer.validated_data["ingrediente"]:
@@ -467,7 +476,6 @@ def estoque_filter(request):
                     filtered = models.Ingrediente.objects.filter(ultima_compra__gte=serializer.validated_data["data_field"]).order_by("-ultima_compra")
             # if the user doesn't provide the date
             else:
-                print("test")
                 # if the user filtered by ingrediente
                 if serializer.validated_data["ingrediente"]:
                     # filters from the Ingrediente model by ingrediente
@@ -604,7 +612,6 @@ def novo_pedido_update(request):
                         produto.valor * serializer.validated_data["quantidade"]).replace(".", ",")
                     request.session["cart_total"] += float(produto.valor * serializer.validated_data["quantidade"])
                     request.session.save()
-                    print(request.session["cart_serializer"][i]["total"])
                     serialized_session = website.serializer.ListPedidoSerializer({
                         "cart": request.session["cart_serializer"], "total": request.session["cart_total"]})
                     return Response(serialized_session.data)

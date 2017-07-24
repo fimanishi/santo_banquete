@@ -77,6 +77,8 @@ def finalizar_pedido(request):
         "cliente": request.session["cart_user"],
         "subtotal": request.session["cart_total"]
     }
+    request.session["delivery"] = 0
+    request.session.save()
     return TemplateResponse(request, "finalizar_pedido.html", context)
 
 

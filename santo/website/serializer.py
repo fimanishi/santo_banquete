@@ -137,3 +137,7 @@ class CompraSerializer (serializers.Serializer):
 
 class ConfirmSerializer (serializers.Serializer):
     confirm = serializers.CharField(max_length=10, required=False, allow_blank=True)
+
+
+class DeliverySerializer (serializers.Serializer):
+    valor = serializers.DecimalField(decimal_places=2, localize=True, max_digits=5)
