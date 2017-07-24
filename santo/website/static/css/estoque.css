@@ -13,8 +13,20 @@ select {
   justify-content: space-between;
 }
 
+.quantidade_line.input-group {
+  width: 80px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.unidade {
+  display:flex;
+  align-items: center;
+  width:60px;
+}
+
 #quantidade {
-  width: 220px;
+  width: 120px;
   display: flex;
   justify-content: flex-start;
 }
@@ -22,6 +34,18 @@ select {
 .my_menu {
   display: flex;
   justify-content: center;
+}
+
+.my_menu3 {
+    width: 300px;
+    margin: 0 auto 10px auto;
+    display: flex;
+    justify-content: space-between;
+}
+
+.my_menu3 .alert {
+    width: 300px;
+    text-align: center;
 }
 
 .my_menu2 > div {
@@ -62,6 +86,11 @@ select {
   width: 300px;
   margin: 30px auto;
   text-align: center;
+}
+
+.add_flex {
+  display: flex;
+  justify-content: space-between;
 }
 
 

@@ -48,6 +48,13 @@ class Producao(models.Model):
     usuario = models.CharField(max_length=50)
 
 
+class Bairro(models.Model):
+    class Meta:
+        db_table = "bairro"
+    nome = models.CharField(max_length=60)
+    delivery = models.FloatField()
+
+
 class Cliente(models.Model):
     class Meta:
         db_table = "cliente"
@@ -55,7 +62,7 @@ class Cliente(models.Model):
     telefone = models.CharField(max_length=20)
     tipo = models.CharField(max_length=2)
     endereco = models.CharField(max_length=50)
-    bairro = models.CharField(max_length=30)
+    bairro = models.ForeignKey(Bairro, on_delete=models.CASCADE)
     cidade = models.CharField(max_length=30)
     referencia = models.CharField(max_length=50)
 

@@ -52,7 +52,7 @@ def cliente_add(request):
                                                       telefone=serializer.validated_data["telefone"],
                                                       tipo=serializer.validated_data["tipo"],
                                                       endereco=serializer.validated_data["endereco"].lower(),
-                                                      bairro=serializer.validated_data["bairro"],
+                                                      bairro=models.Bairro.objects.get(nome=serializer.validated_data["bairro"]),
                                                       cidade=serializer.validated_data["cidade"].lower(),
                                                       referencia=serializer.validated_data["referencia"].lower())
                         # gets the id from the new client. this id will be passed to next view
@@ -67,7 +67,7 @@ def cliente_add(request):
                                               telefone=serializer.validated_data["telefone"],
                                               tipo=serializer.validated_data["tipo"],
                                               endereco=serializer.validated_data["endereco"].lower(),
-                                              bairro=serializer.validated_data["bairro"],
+                                              bairro=models.Bairro.objects.get(nome=serializer.validated_data["bairro"]),
                                               cidade=serializer.validated_data["cidade"].lower(),
                                               referencia=serializer.validated_data["referencia"].lower())
                 # gets the id from the new client. this id will be passed to next view
@@ -111,26 +111,10 @@ def fornecedor_add(request):
                 return Response({"id": supplier.id, "nome": supplier.nome.title(), "message": "added"})
 
 
-@login_required
-def pedidos(request):
-    success = 1
-    filtered = []
-    if request.method == "GET":
-        pass
-    context = {}
-    # request.session['cart'] = []
-    # del request.session['cart']
-    return TemplateResponse(request, "pedidos.html", context)
-
-
 # need to create API to update subtotal based on delivery
-@api_view(["GET"])
+@api_view(["POST"])
 @login_required
-def finalizar_pedido_delivery(request):
-    try:
-        referer = request.META['HTTP_REFERER']
-    except KeyError:
-        referer = ""
+def finalizar_pedido_delivery_add(request):
     check = re.search(r"finalizar_pedido", referer)
     if request.method == "POST" and check:
         pass
@@ -371,16 +355,16 @@ def estoque_add_finish(request):
                 # gets the object that matches the ingrediente selection
                 ingredient_id = models.Ingrediente.objects.get(nome=item["ingrediente"])
                 # updates quantidada in estoque
-                ingredient_id.estoque += Decimal(item["quantidade"])
+                ingredient_id.estoque += Decimal(item["quantidade"]) * Decimal(item["unidade"])
                 # updates quantidade in total_comprado
-                ingredient_id.total_comprado += Decimal(item["quantidade"])
+                ingredient_id.total_comprado += Decimal(item["quantidade"]) * Decimal(item["unidade"])
                 # updates the date in ultima_compra
                 ingredient_id.ultima_compra = date.today()
                 # updates valor in valor_comprado
-                ingredient_id.valor_comprado += round(Decimal(item["valor"]) * Decimal(request.session["ratio"]),2)
+                ingredient_id.valor_comprado += round(Decimal(item["valor"]) * Decimal(request.session["ratio"]), 2)
                 # updates the calculation of preco_medio
                 try:
-                    ingredient_id.preco_medio = round(ingredient_id.valor_comprado / ingredient_id.total_comprado,2)
+                    ingredient_id.preco_medio = round(ingredient_id.valor_comprado / ingredient_id.total_comprado, 2)
                 except ZeroDivisionError:
                     ingredient_id.preco_medio = 0
                 ingredient_id.save()
@@ -393,16 +377,21 @@ def estoque_add(request):
     if request.method == "POST":
         # gets id, tipo, ingrediente, quantidade, valor, data and action from EstoqueSerializer
         serializer = website.serializer.EstoqueSerializer(data=request.data)
+        print(serializer)
         if serializer.is_valid(raise_exception=True):
             # gets the object that matches the ingrediente selection
             request.session["cart"].append({"ingrediente": serializer.validated_data["ingrediente"],
                                             "quantidade": float(serializer.validated_data["quantidade"]),
-                                            "valor": float(serializer.validated_data["valor"])
+                                            "valor": float(serializer.validated_data["valor"]),
+                                            "unidade": float(serializer.validated_data["unidade"])
                                             })
             request.session.save()
             s = website.serializer.EstoqueSerializer(request.session["cart"], many=True)
-            print(s.data)
-            return Response(s.data)
+            valor = 0
+            for i in request.session["cart"]:
+                valor += i["valor"]
+            valor = "{:.2f}".format(valor).replace(".", ",")
+            return Response({"cart": s.data, "valor": valor})
 
 
 @api_view(["POST"])
@@ -411,16 +400,22 @@ def estoque_add_update(request):
     if request.method == "POST":
         # gets id, tipo, ingrediente, quantidade, valor, data and action from EstoqueSerializer
         serializer = website.serializer.EstoqueSerializer(data=request.data)
+        print(serializer)
         if serializer.is_valid(raise_exception=True):
             # gets the object that matches the ingrediente selection
             for item in request.session["cart"]:
                 if item["ingrediente"] == serializer.validated_data["ingrediente"]:
                     item["quantidade"] = float(serializer.validated_data["quantidade"])
                     item["valor"] = float(serializer.validated_data["valor"])
+                    item["unidade"] = float(serializer.validated_data["unidade"])
                     break
             request.session.save()
             s = website.serializer.EstoqueSerializer(request.session["cart"], many=True)
-            return Response(s.data)
+            valor = 0
+            for i in request.session["cart"]:
+                valor += i["valor"]
+            valor = "{:.2f}".format(valor).replace(".", ",")
+            return Response({"cart": s.data, "valor": valor})
 
 
 @api_view(["POST"])
@@ -437,7 +432,11 @@ def estoque_add_delete(request):
                     break
             request.session.save()
             s = website.serializer.EstoqueSerializer(request.session["cart"], many=True)
-            return Response(s.data)
+            valor = 0
+            for i in request.session["cart"]:
+                valor += i["valor"]
+            valor = "{:.2f}".format(valor).replace(".", ",")
+            return Response({"cart": s.data, "valor": valor})
 
 
 # to be completed
@@ -645,6 +644,7 @@ def nova_compra_add(request):
                      serializer.validated_data["imposto"] -
                      serializer.validated_data["desconto"]) / serializer.validated_data["nota"]
             request.session["ratio"] = float(ratio)
+            request.session["nota"] = "{:.2f}".format(serializer.validated_data["nota"]).replace(".", ",")
             request.session.save()
             return Response(ratio)
 
@@ -656,4 +656,16 @@ def finalizar_pedido_init(request):
         serialized_session = website.serializer.ListPedidoSerializer({
             "cart": request.session["cart_serializer"], "total": request.session["cart_total"]})
         return Response(serialized_session.data)
+
+
+@api_view(["POST"])
+@login_required
+def estoque_add_init(request):
+    if request.method == "POST":
+        s = website.serializer.EstoqueSerializer(request.session["cart"], many=True)
+        valor = 0
+        for i in request.session["cart"]:
+            valor += i["valor"]
+        valor = "{:.2f}".format(valor).replace(".", ",")
+        return Response({"cart": s.data, "valor": valor})
 

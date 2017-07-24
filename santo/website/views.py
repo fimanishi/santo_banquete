@@ -162,7 +162,7 @@ def estoque(request):
             context['ingredients'][j.tipo] = models.Ingrediente.objects.filter(tipo=j.tipo)
     # adds the categories
     context["types"] = types
-
+    context["total"] = request.session["nota"]
     return TemplateResponse(request, "estoque.html", context)
 
 

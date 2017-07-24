@@ -19,6 +19,12 @@
   <div class="my_menu">
     <div id="adicionar_message"><h3>Estoque</h3><br/></div>
   </div>
+  <div style="margin-bottom: 0" class="my_menu3">
+    <div class="alert alert-info">Valor dos Produtos: R$ {{ total }}</div>
+  </div>
+  <div style="margin: 0 auto 0 auto;" class="my_menu3">
+    <div class="alert alert-success"><span style="margin-right: 10px;">Subtotal:</span><span style="margin-left: 10px;">R$ <span id="subtotal">0,00</span></span></div>
+  </div>
   <div class="my_menu">
     <form id="stock_form" action="./" onsubmit="return validateForm()">
       {% csrf_token %}
@@ -40,12 +46,22 @@
             </select>
           </div>
         </div>
-        <div>
-          <p>Quantidade:</p>
+        <div class="add_flex">
           <div>
-            <div id="quantidade" style="margin-bottom: 5px;" class="last_production_line input-group">
-              <input id="quantidade_value" type="text" class="field_sizing form-control" placeholder="Quantidade" aria-describedby="basic-addon1" name="quantidade">
-              <span style="display:flex; align-items: center; width:100px;" id="unidade"  class="input-group-addon" id="basic-addon2"></span>
+            <p>Quantidade:</p>
+            <div>
+              <div style="margin-bottom: 5px;" class="quantidade_line input-group">
+                <input id="quantidade_value" type="text" class="field_sizing form-control" placeholder="Qtd" aria-describedby="basic-addon1" name="quantidade">
+              </div>
+            </div>
+          </div>
+          <div>
+            <p>Por unidade:</p>
+            <div>
+              <div id="quantidade" style="margin-bottom: 5px;" class="quantidade_line input-group">
+                <input id="quantidade_unidade" type="text" class="field_sizing form-control" placeholder="Qtd" aria-describedby="basic-addon1" name="quantidade">
+                <span style="display:flex; align-items: center; width:80px; font-size: 0.8em;" id="unidade"  class="input-group-addon" id="basic-addon2"></span>
+              </div>
             </div>
           </div>
         </div>
@@ -72,6 +88,7 @@
             Deseja adicionar o ingrediente abaixo?<br><br>
             Ingrediente: <span id="ingrediente_modal"></span><br>
             Quantidade: <span id="quantidade_modal"></span><br>
+            Unidade: <span id="unidade_modal"></span> {{ ingredient.unidade }}<br/>
             Valor: R$ <span id="valor_modal"></span>
           </div>
           <div class="modal-footer">
@@ -94,7 +111,7 @@
 {% block script %}
   <script src="/static/js/js/bootstrap-select.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
-  <script src="/static/js/estoque_add_react/main.e309b5e5.js"></script>
+  <script src="/static/js/estoque_add_react/main.4fe2cd46.js"></script>
   <script>
 
     // creates an object with the types as keys and products as values
@@ -119,6 +136,19 @@
       {% endfor %}
     };
 
+    function initList (){
+      axios.post("/estoque/add/init/")
+        .then(function (result) {
+          store.dispatch(updateFiltered(result.data.cart, "list"));
+        })
+        .catch(function (error) {
+          console.log(error);
+          store.dispatch(updateFiltered([], "fail"))
+        })
+    }
+
+    initList();
+
     function getType(event) {
       $(document).ready(function (){
         $("#ingredient_list").children().remove();
@@ -135,11 +165,13 @@
       var qtd = document.getElementById("quantidade_value").value;
       var igt = document.getElementById("ingredient_list").value;
       var vlr = document.getElementById("valor").value;
-      if (qtd && igt && vlr){
+      var und = document.getElementById("quantidade_unidade").value;
+      if (qtd && igt && vlr && und){
         $("#stock_form").attr("method", "POST");
         document.getElementById("quantidade_modal").innerHTML = qtd;
         document.getElementById("ingrediente_modal").innerHTML = igt;
         document.getElementById("valor_modal").innerHTML = vlr;
+        document.getElementById("unidade_modal").innerHTML = und;
         $("#myModal").modal();
       }
       else {
@@ -152,14 +184,17 @@
       data = {};
       data["ingrediente"] = document.getElementById("ingredient_list").value;
       data["quantidade"] = document.getElementById("quantidade_value").value;
+      data["unidade"] = document.getElementById("quantidade_unidade").value;
       data["valor"] = document.getElementById("valor").value;
       $('.selectpicker').selectpicker('val', '');
       document.getElementById("quantidade_value").value = "";
+      document.getElementById("quantidade_unidade").value = "";
       document.getElementById("valor").value = "";
       document.getElementById("unidade").value = "";
       axios.post("/estoque/add/", data)
         .then(function(result){
-          store.dispatch(updateFiltered(result.data, ""));
+          store.dispatch(updateFiltered(result.data.cart, ""));
+          document.getElementById("subtotal").innerHTML = result.data.valor;
         })
         .catch(function(error){
           store.dispatch(updateFiltered([], "fail"));
@@ -170,6 +205,7 @@
       $('.selectpicker').selectpicker('val', '');
       document.getElementById("valor").value = "";
       document.getElementById("quantidade_value").value = "";
+      document.getElementById("quantidade_unidade").value = "";
       document.getElementById("unidade").value = "";
       modal_check = false;
     }

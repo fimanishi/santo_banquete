@@ -39,7 +39,7 @@
     </div>
   </div>
   <div style="margin: 20px auto 0 auto;" class="my_menu2">
-    <div class="alert alert-success"><span style="margin-right: 10px;">Subtotal</span><span style="margin-left: 10px;">R$ <span id="subtotal">{% load display_decimals %}{{ subtotal|display_decimals }}</span></span></div>
+    <div class="alert alert-success"><span style="margin-right: 10px;">Subtotal:</span><span style="margin-left: 10px;">R$ <span id="subtotal">{% load display_decimals %}{{ subtotal|display_decimals }}</span></span></div>
   </div>
   <div class="my_menu2">
     <h5>Detalhes do pedido:</h5>
@@ -63,7 +63,6 @@
     }
 
     function initList (){
-      console.log("test");
       axios.post("/finalizar_pedido/init/")
         .then(function (result) {
           console.log(result.data);
