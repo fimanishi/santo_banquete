@@ -117,6 +117,7 @@ def finalizar_pedido_delivery_update(request):
     if request.method == "POST":
         serializer = website.serializer.DeliverySerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
+            request.session["delivery_boolean"] = serializer.validated_data["boolean"]
             if request.session["delivery"] == 0:
                 request.session["delivery"] = float(serializer.validated_data["valor"])
                 request.session["cart_total"] += float(serializer.validated_data["valor"])
@@ -132,10 +133,28 @@ def finalizar_pedido_delivery_update(request):
 @login_required
 def finalizar_pedido_finish(request):
     if request.method == "POST":
-        if len(request.session["cart"]) > 0:
-            pass
-        else:
-            return Response("failure")
+        serializer = website.serializer.DataSerializer(data=request.data)
+        print(serializer)
+        if serializer.is_valid(raise_exception=True):
+            print("test")
+            if len(request.session["cart"]) > 0:
+                models.Pedido.objects.create(cliente=models.Cliente.objects.get(id=request.session["cart_user"]["id"]),
+                                             total=request.session["cart_total"],
+                                             delivery=request.session["delivery_boolean"],
+                                             delivery_valor=request.session["delivery"],
+                                             data_entrega=serializer.validated_data["data"]
+                                             )
+                pedido = models.Pedido.objects.last()
+                for item in request.session["cart"]:
+                    produto = models.Produto.objects.get(nome=item["produto"])
+                    models.PedidoDetalhe.objects.create(pedido=pedido,
+                                                 produto=produto,
+                                                 quantidade=item["quantidade"],
+                                                 valor_unitario=item["valor"],
+                                                 total=item["total"])
+                return Response("success")
+            else:
+                return Response("failure")
 
 
 @api_view(["POST"])

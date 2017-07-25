@@ -141,3 +141,8 @@ class ConfirmSerializer (serializers.Serializer):
 
 class DeliverySerializer (serializers.Serializer):
     valor = serializers.DecimalField(decimal_places=2, localize=True, max_digits=5)
+    boolean = serializers.BooleanField(required=False)
+
+
+class DataSerializer (serializers.Serializer):
+    data = serializers.DateField(input_formats=["%d/%m/%Y"])

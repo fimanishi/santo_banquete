@@ -84,9 +84,7 @@ class Fornecedor(models.Model):
 
 class Compra(models.Model):
     class Meta:
-        db_table = "compra" \
-                   "" \
-                   ""
+        db_table = "compra"
     fornecedor = models.ForeignKey(Fornecedor, on_delete=models.CASCADE)
     nota = models.FloatField()
     desconto = models.FloatField()
@@ -94,3 +92,28 @@ class Compra(models.Model):
     total = models.FloatField()
     data = models.DateField(auto_now_add=True)
     usuario = models.CharField(max_length=30)
+
+
+class Pedido(models.Model):
+    class Meta:
+        db_table = "pedido"
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    total = models.FloatField()
+    data = models.DateField(auto_now_add=True)
+    hora = models.TimeField(auto_now_add=True)
+    data_entrega = models.DateField()
+    pago = models.BooleanField()
+    entregue = models.BooleanField()
+    delivery = models.BooleanField()
+    delivery_valor = models.FloatField()
+
+
+class PedidoDetalhe(models.Model):
+    class Meta:
+        db_table = "pedido_detalhe"
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE)
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE)
+    quantidade = models.FloatField()
+    valor_unitario = models.FloatField()
+    total = models.FloatField()
+
