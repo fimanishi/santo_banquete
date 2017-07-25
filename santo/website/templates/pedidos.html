@@ -2,8 +2,8 @@
 
 {% block css %}
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css_datepicker/bootstrap-datepicker.min.css">
-  <link rel="stylesheet" type="text/css" href="/static/css/dist/css/bootstrap-select.min.css" />
   <link rel="stylesheet" type="text/css" href="/static/css/adicionar_cliente.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/finalizar_pedido_react/main.1f83477e.css"/>
 
 {% endblock %}
 
@@ -20,14 +20,14 @@
   <div class="my_menu2">
     <a href="/escolher_cliente"><button style="margin: 5px 0 5px 0;" class="btn btn-danger btn-block">Criar pedido</button></a>
   </div>
-  <form action="./" method="GET">
+  <form onsubmit="return validateForm()">
     <div style="text-align: center;" class="my_menu2">
       <h4>Filtrar por:</h4>
     </div>
     <div class="my_menu2">
       <div class="long-field input-group">
         <p>Nome Completo:</p>
-        <input type="text" class="field_sizing form-control" placeholder="Nome Completo" aria-describedby="basic-addon1" name="nome">
+        <input id="nome" type="text" class="field_sizing form-control" placeholder="Nome Completo" aria-describedby="basic-addon1" name="nome">
       </div>
     </div>
     <div class="my_menu2">
@@ -58,61 +58,18 @@
       <button type="submit" class="btn btn-primary" name="button" value="filter">Visualizar pedidos</button>
     </div>
   </form>
-{#  {% if success == 4 %}#}
-{#  <div>#}
-{#    <form name="toDelete" method="POST" onsubmit="return false;">#}
-{#      {% for i in filtered %}#}
-{#          <div class="filtered">#}
-{#            <div class="alert alert-info" role="alert">#}
-{#              <div style="display: flex;">#}
-{#                <div class="listing">#}
-{#                  <p><strong>Produto:</strong></p>#}
-{#                  <p>{{ i.produto.nome }}</p>#}
-{#                </div>#}
-{#                <div class="listing">#}
-{#                  <p><strong>Quantidade:</strong></p>#}
-{#                  <p>{{ i.quantidade }}</p>#}
-{#                </div>#}
-{#                <div class="listing">#}
-{#                  <p><strong>Data:</strong></p>#}
-{#                  <p>{{ i.data}}<button type="submit" class="delete_button glyphicon glyphicon-remove" aria-hidden="true" value={{ i.id }} onclick="removeItem(event)"></button></p>#}
-{#                </div>#}
-{#              </div>#}
-{#            </div>#}
-{#          </div>#}
-{#      {% endfor %}#}
-{#    </form>#}
-{#  </div>#}
-{#  {% endif %}#}
-{#  {% if success == 3 %}#}
-{#    <div class="my_menu2">#}
-{#      <div class="alert alert-danger">Insira nome completo e cidade</div>#}
-{#    </div>#}
-{#  {% endif %}#}
-{#  {% if success == 4 %}#}
-{#    <div class="my_menu2">#}
-{#      <div class="alert alert-danger">Cliente já cadastrado</div>#}
-{#    </div>#}
-{#  {% endif %}#}
+  {# placeholder for react results #}
+  <div id="result_list"></div>
 {% endblock %}
 
 
 {% block script %}
-  <script src="/static/js/js/bootstrap-select.min.js"></script>
   <script src="/static/js/js_datepicker/bootstrap-datepicker.min.js"></script>
+  <script src="/static/js/pedidos_react/main.f6cffab3.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
   <script>
     $('.datepicker').datepicker();
     // creates an object with the types as keys and products as values
-    var product_list = {
-      // takes keys and values from the
-      {% for tipo, query in products.items %}
-        "{{ tipo }}": [
-          {% for produto in query %}
-            '{{ produto.nome }}',
-          {% endfor %}
-        ],
-      {% endfor %}
-    };
 
     function brPhoneStyle(event){
       var input = document.getElementById("telefone").value.replace(/\D/g, "");
@@ -127,19 +84,34 @@
       }
     }
 
-    function removeItem() {
-      $(document).ready(function (){
-        var toDelete = document.activeElement.parentNode.parentNode.parentNode.parentNode.parentNode;
-          $(toDelete).remove();
-{#              axios.post('/remove/item/?id=123')#}
-{#                  .then(function (response) {#}
-{#                     console.log(response.data);#}
-{#                  });#}
-        });
+    function validateForm() {
+      var nome = document.getElementById("nome").value;
+      var tel = document.getElementById("telefone").value;
+      var date = document.getElementById("date_field").value;
+      var radios = document.getElementsByName("status");
+      var status = "";
+      for (var i = 0; i<radios.length; i++){
+        if(radios[i].checked){
+          status = radios[i].value;
+          break
+        }
+      }
+      radios = document.getElementsByName("pago");
+      var pago = "";
+      for (var i = 0; i<radios.length; i++){
+        if(radios[i].checked){
+          pago = radios[i].value;
+          break
+        }
+      }
+      if (nome || tel || date || status || pago){
+        store.dispatch(updateFiltered([], "empty"));
+      }
+      else {
+        store.dispatch(updateFiltered([], "add"));
+      }
+      return false;
     }
-
-
-
 
   </script>
 {% endblock %}
