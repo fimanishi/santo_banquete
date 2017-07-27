@@ -201,12 +201,10 @@ def pedidos_detalhe(request, id):
     if request.method == "GET":
         try:
             pedido = models.Pedido.objects.get(id=id)
-            filtered = models.PedidoDetalhe.objects.filter(pedido=id)
         except ObjectDoesNotExist:
             return http.HttpResponseRedirect('/pedidos/')
         context = {
             "pedido": pedido,
-            "filtered": filtered
         }
         return TemplateResponse(request, "pedidos_detalhe.html", context)
 

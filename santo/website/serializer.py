@@ -103,6 +103,8 @@ class ClienteSelectionSerializer (serializers.Serializer):
 class PedidoSerializer (serializers.Serializer):
     produto = serializers.CharField(max_length=50)
     quantidade = serializers.DecimalField(decimal_places=2, localize=True, max_digits=5)
+    valor = serializers.DecimalField(decimal_places=2, localize=True, max_digits=5, required=False)
+    total = serializers.DecimalField(decimal_places=2, localize=True, max_digits=6, required=False)
 
 
 class ListPedidoSerializer (serializers.Serializer):
@@ -156,3 +158,5 @@ class PedidosFilterSerializer (serializers.Serializer):
     pagamento = serializers.CharField(max_length=10, required=False, allow_blank=True)
     data_output = serializers.DateField(required=False, format="%d/%m/%Y")
     id = serializers.IntegerField(required=False)
+    debito = serializers.DecimalField(decimal_places=2, localize=True, max_digits=7, required=False)
+    boolean = serializers.BooleanField(required=False)

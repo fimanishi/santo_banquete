@@ -765,3 +765,28 @@ def pedidos_filter_delete(request):
             pedido.delete()
             models.PedidoDetalhe.objects.filter(pedido=serializer.validated_data["id"]).delete()
             return Response("delete")
+
+
+@api_view(["POST"])
+@login_required
+def pedidos_detalhe_list(request):
+    if request.method == "POST":
+        pedidos_detalhe = []
+        serializer = website.serializer.PedidosFilterSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            filtered = models.PedidoDetalhe.objects.filter(pedido=serializer.validated_data["id"])
+            if filtered:
+                for item in filtered:
+                    pedidos_detalhe.append(
+                        {"produto": item.produto.nome, "quantidade": item.quantidade, "valor": item.valor_unitario,
+                         "total": item.total})
+                    print(item.produto.nome)
+            s = website.serializer.PedidoSerializer(pedidos_detalhe, many=True)
+            pedido = models.Pedido.objects.get(id=serializer.validated_data["id"])
+            if pedido.entregue:
+                status = "Entregue"
+            else:
+                status = "Não Entregue"
+            info = {"debito": pedido.debito, "status": status, "boolean": pedido.entregue}
+            d = website.serializer.PedidosFilterSerializer(info)
+            return Response({"list": s.data, "info": d.data})

@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^pedidos/filter/$', website.views_api.pedidos_filter, name="pedidos_filter"),
     url(r'^pedidos/filter/delete/$', website.views_api.pedidos_filter_delete, name="pedidos_filter_delete"),
     url(r'^pedidos/detalhe/(?P<id>[0-9]+)/$', website.views.pedidos_detalhe, name="pedidos_detalhe"),
+    url(r'^pedidos/detalhe/list/$', website.views_api.pedidos_detalhe_list, name="pedidos_detalhe_list"),
     url(r'^producao/add/$', website.views_api.producao_add, name="producao_add"),
     url(r'^producao/filter/$', website.views_api.producao_filter, name="producao_filter"),
     url(r'^producao/delete/$', website.views_api.producao_delete, name="producao_delete"),

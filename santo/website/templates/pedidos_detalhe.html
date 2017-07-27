@@ -4,7 +4,7 @@
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css_datepicker/bootstrap-datepicker.min.css">
   <link rel="stylesheet" type="text/css" href="/static/css/dist/css/bootstrap-select.min.css" />
   <link rel="stylesheet" type="text/css" href="/static/css/pedidos_detalhe.css" />
-  <link rel="stylesheet" type="text/css" href="/static/css/producao_react/main.affb6591.css"/>
+  <link rel="stylesheet" type="text/css" href="/static/css/finalizar_pedido_react/main.1f83477e.css"/>
 
 {% endblock %}
 
@@ -28,13 +28,13 @@
       <p>Telefone:</p><p>{{ pedido.cliente.telefone}}</p>
     </div>
     <div class="my_menu2">
-      <p>Valor:</p><span>R$ <span>{% load display_decimals %}{{ pedido.total|display_decimals }}</span></span>
+      <p>Valor:</p><span>R$ <span id="valor">{% load display_decimals %}{{ pedido.total|display_decimals }}</span></span>
     </div>
     <div class="my_menu2">
       <p>Entregue:</p><span>{% if pedido.entregue %}<p>Entregue</p>{% else %}<p>Não Entregue</p>{% endif %}</span>
     </div>
     <div class="my_menu2">
-      <p>A pagar:</p><span>R$ <span>{{ pedido.debito|display_decimals }}</span></span>
+      <p>A pagar:</p><span>R$ <span id="debito">{{ pedido.debito|display_decimals }}</span></span>
     </div>
     <br/>
 {#    <div class="my_menu2">#}
@@ -48,65 +48,26 @@
 
 
 {% block script %}
-  <script src="/static/js/js/bootstrap-select.min.js"></script>
-  <script src="/static/js/js_datepicker/bootstrap-datepicker.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
-  <script src="/static/js/estoque_react/main.c7cee955.js"></script>
+  <script src="/static/js/pedidos_detalhe_react/main.212ac6b3.js"></script>
   <script>
-    $('.datepicker').datepicker();
-    // creates an object with the types as keys and products as values
-    var ingredient_list = {
-      // takes keys and values from the
-      {% for tipo, query in ingredients.items %}
-        "{{ tipo }}": [
-          {% for ingredient in query %}
-            '{{ ingredient.nome }}',
-          {% endfor %}
-        ],
-      {% endfor %}
-    };
-
-    function getType(event) {
-      $(document).ready(function (){
-        $("#ingredient_list").children().remove();
-        $("#unidade").text(" ");
-        var type = ingredient_list[$("#ingredient_type").val()].sort();
-        for(var i = 0; i < type.length; i++){
-          $("#ingredient_list").append("<option>" + type[i] + "</option>");
-          $('.selectpicker').selectpicker('refresh');
-        }
-      });
+    function initPedidos(){
+      var data = {id: {{ pedido.id }}};
+      axios.post("/pedidos/detalhe/list/", data)
+        .then (function (result){
+          console.log(result.data.info);
+          store.dispatch(updateFiltered(result.data.list, result.data.info, ""))
+        })
+        .catch (function (error){
+          store.dispatch(updateFiltered([], "fail"))
+        })
     }
 
-    function validateForm() {
-      var data = {};
-      data.tipo = document.getElementById("ingredient_type").value;
-      data.ingrediente = document.getElementById("ingredient_list").value;
-      data.data_field = document.getElementById("date_field").value;
-      data.action = "filter";
-      $('.selectpicker').selectpicker('val', '');
-      $('.datepicker').datepicker('update', '');
-      if (data.tipo || data.ingrediente || data.data_field){
-        axios.post("/estoque/filter/", data)
-          .then(function(result){
-            try {
-              if(result.data === "empty"){
-                store.dispatch(updateFiltered([], "empty"));
-              }
-              else {
-                store.dispatch(updateFiltered(result.data, "list"));
-              }
-            } catch (e) {
-              console.error(e);
-            }
+    initPedidos();
 
-          })
-          .catch(function(error){
-            store.dispatch(updateFiltered([], "fail"));
-          })
-      }
-      return false;
-    }
+
+
+
 
 
 
