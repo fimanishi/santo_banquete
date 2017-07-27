@@ -65,6 +65,7 @@ class Cliente(models.Model):
     bairro = models.ForeignKey(Bairro, on_delete=models.CASCADE)
     cidade = models.CharField(max_length=30)
     referencia = models.CharField(max_length=50)
+    credito = models.FloatField()
 
 
 class Fornecedor(models.Model):
@@ -106,6 +107,7 @@ class Pedido(models.Model):
     entregue = models.BooleanField()
     delivery = models.BooleanField()
     delivery_valor = models.FloatField()
+    debito = models.FloatField()
 
 
 class PedidoDetalhe(models.Model):

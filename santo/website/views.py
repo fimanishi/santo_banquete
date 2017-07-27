@@ -195,6 +195,22 @@ def escolher_fornecedor(request):
     request.session["cart_serializer"] = []
     return TemplateResponse(request, "escolher_fornecedor.html")
 
+
+@login_required
+def pedidos_detalhe(request, id):
+    if request.method == "GET":
+        try:
+            pedido = models.Pedido.objects.get(id=id)
+            filtered = models.PedidoDetalhe.objects.filter(pedido=id)
+        except ObjectDoesNotExist:
+            return http.HttpResponseRedirect('/pedidos/')
+        context = {
+            "pedido": pedido,
+            "filtered": filtered
+        }
+        return TemplateResponse(request, "pedidos_detalhe.html", context)
+
+
 # def hello(request):
 #     # form  = website.forms.NameForm(request.POST or None)
 #     #

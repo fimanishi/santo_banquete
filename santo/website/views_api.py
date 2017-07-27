@@ -20,6 +20,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
 from decimal import *
+import copy
 
 
 # Create your views here.
@@ -134,15 +135,19 @@ def finalizar_pedido_delivery_update(request):
 def finalizar_pedido_finish(request):
     if request.method == "POST":
         serializer = website.serializer.DataSerializer(data=request.data)
-        print(serializer)
         if serializer.is_valid(raise_exception=True):
-            print("test")
             if len(request.session["cart"]) > 0:
+                cliente = models.Cliente.objects.get(id=request.session["cart_user"]["id"])
+                cliente.credito -= Decimal(request.session["cart_total"])
+                cliente.save()
                 models.Pedido.objects.create(cliente=models.Cliente.objects.get(id=request.session["cart_user"]["id"]),
                                              total=request.session["cart_total"],
                                              delivery=request.session["delivery_boolean"],
                                              delivery_valor=request.session["delivery"],
-                                             data_entrega=serializer.validated_data["data"]
+                                             data_entrega=serializer.validated_data["data"],
+                                             pago=False,
+                                             entregue=False,
+                                             debito=request.session["cart_total"]
                                              )
                 pedido = models.Pedido.objects.last()
                 for item in request.session["cart"]:
@@ -695,3 +700,68 @@ def estoque_add_init(request):
         valor = "{:.2f}".format(valor).replace(".", ",")
         return Response({"cart": s.data, "valor": valor})
 
+
+@api_view(["POST"])
+@login_required
+def pedidos_filter(request):
+    filtered_temp = []
+    filtered_json = []
+    if request.method == "POST":
+        serializer = website.serializer.PedidosFilterSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            filtered = models.Pedido.objects.filter(data__gte=serializer.validated_data["data_field"]).order_by("-data")
+            if filtered:
+                for i in filtered:
+                    filtered_temp.append(i)
+                    if serializer.validated_data["nome"]:
+                        if serializer.validated_data["nome"] not in models.Cliente.objects.get(id=i.cliente_id).nome:
+                            filtered_temp.remove(i)
+                            continue
+                    if serializer.validated_data["telefone"]:
+                        if serializer.validated_data["telefone"] != models.Cliente.objects.get(id=i.cliente_id).telefone:
+                            filtered_temp.remove(i)
+                            continue
+                    if serializer.validated_data["status"] == "True":
+                        if not i.entregue:
+                            filtered_temp.remove(i)
+                            continue
+                    elif serializer.validated_data["status"] == "False":
+                        if i.entregue:
+                            filtered_temp.remove(i)
+                            continue
+                    if serializer.validated_data["pagamento"] == "True":
+                        if not i.pago:
+                            filtered_temp.remove(i)
+                            continue
+                    elif serializer.validated_data["pagamento"] == "False":
+                        if i.pago:
+                            filtered_temp.remove(i)
+                            continue
+            for i in filtered_temp:
+                if i.entregue:
+                    status = "Entregue"
+                else:
+                    status = "Não Entregue"
+                if i.pago:
+                    pagamento = "Pago"
+                else:
+                    pagamento = "Não Pago"
+                nome = models.Cliente.objects.get(id=i.cliente_id).nome
+                filtered_json.append({"id": i.id, "nome": nome.title(), "data_output": i.data, "status": status, "pagamento": pagamento})
+            s = website.serializer.PedidosFilterSerializer(filtered_json, many=True)
+            return Response(s.data)
+
+
+@api_view(["POST"])
+@login_required
+def pedidos_filter_delete(request):
+    if request.method == "POST":
+        serializer = website.serializer.PedidosFilterSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            pedido = models.Pedido.objects.get(id=serializer.validated_data["id"])
+            cliente = models.Cliente.objects.get(id=pedido.cliente.id)
+            cliente.credito += pedido.total
+            cliente.save()
+            pedido.delete()
+            models.PedidoDetalhe.objects.filter(pedido=serializer.validated_data["id"]).delete()
+            return Response("delete")

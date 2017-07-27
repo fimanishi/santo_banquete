@@ -37,7 +37,7 @@
       </div>
       <div style="width:120px;">
         <p>Data:</p>
-        <input id="date_field" class="field_sizing form-control datepicker" data-date-format="mm/dd/yyyy" placeholder="Data" data-date-autoclose=true data-date-today-highlight=true name="data_field">
+        <input id="date_field" class="field_sizing form-control datepicker" data-date-format="dd/mm/yyyy" placeholder="Data" data-date-autoclose=true data-date-today-highlight=true name="data_field">
       </div>
     </div>
     <div style="margin-top: 20px;" class="my_menu2">
@@ -65,7 +65,7 @@
 
 {% block script %}
   <script src="/static/js/js_datepicker/bootstrap-datepicker.min.js"></script>
-  <script src="/static/js/pedidos_react/main.f6cffab3.js"></script>
+  <script src="/static/js/pedidos_react/main.b9265047.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
   <script>
     $('.datepicker').datepicker();
@@ -85,27 +85,46 @@
     }
 
     function validateForm() {
-      var nome = document.getElementById("nome").value;
-      var tel = document.getElementById("telefone").value;
-      var date = document.getElementById("date_field").value;
-      var radios = document.getElementsByName("status");
-      var status = "";
-      for (var i = 0; i<radios.length; i++){
-        if(radios[i].checked){
-          status = radios[i].value;
-          break
-        }
+      var data = {};
+      data.nome = document.getElementById("nome").value;
+      data.telefone = document.getElementById("telefone").value;
+      data.data_field = document.getElementById("date_field").value;
+      try{
+        data.status = document.querySelector('input[name="status"]:checked').value;
       }
-      radios = document.getElementsByName("pago");
-      var pago = "";
-      for (var i = 0; i<radios.length; i++){
-        if(radios[i].checked){
-          pago = radios[i].value;
-          break
-        }
+      catch (e){
+        data.status = "";
       }
-      if (nome || tel || date || status || pago){
-        store.dispatch(updateFiltered([], "empty"));
+      try{
+        data.pagamento = document.querySelector('input[name="pago"]:checked').value;
+      }
+      catch (e){
+        data.pagamento = "";
+      }
+      if (data.nome || data.telefone || data.data_field || data.status || data.pagamento){
+        try{
+          document.querySelector('input[name="pago"]:checked').checked = false;
+        }
+        catch (e){}
+        try{
+          document.querySelector('input[name="status"]:checked').checked = false;
+        }
+        catch (e){}
+        document.getElementById("nome").value = "";
+        document.getElementById("telefone").value = "";
+        document.getElementById("date_field").value = "";
+        axios.post("/pedidos/filter/", data)
+          .then(function(result){
+            if (result.data.length > 0){
+              store.dispatch(updateFiltered(result.data, "list"))
+            }
+            else{
+              store.dispatch(updateFiltered([], "empty"))
+            }
+          })
+          .catch(function(e){
+            store.dispatch(updateFiltered([], "fail"))
+          })
       }
       else {
         store.dispatch(updateFiltered([], "add"));

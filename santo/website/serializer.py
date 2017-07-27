@@ -146,3 +146,13 @@ class DeliverySerializer (serializers.Serializer):
 
 class DataSerializer (serializers.Serializer):
     data = serializers.DateField(input_formats=["%d/%m/%Y"])
+
+
+class PedidosFilterSerializer (serializers.Serializer):
+    nome = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    telefone = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    data_field = serializers.DateField(required=False, input_formats=["%d/%m/%Y", ""])
+    status = serializers.CharField(max_length=10, required=False, allow_blank=True)
+    pagamento = serializers.CharField(max_length=10, required=False, allow_blank=True)
+    data_output = serializers.DateField(required=False, format="%d/%m/%Y")
+    id = serializers.IntegerField(required=False)
