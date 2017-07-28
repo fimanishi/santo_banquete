@@ -19,7 +19,6 @@
     <div id="adicionar_message"><h3>Detalhes do Pedido</h3></div>
   </div>
   <br/>
-  <br/>
   <div>
     <div class="my_menu2">
       <p>Nome:</p><p>{{ pedido.cliente.nome | title}}</p>
@@ -28,10 +27,13 @@
       <p>Telefone:</p><p>{{ pedido.cliente.telefone}}</p>
     </div>
     <div class="my_menu2">
-      <p>Valor:</p><span>R$ <span id="valor">{% load display_decimals %}{{ pedido.total|display_decimals }}</span></span>
+      <p>Data para entrega:</p><span>{{ pedido.data_entrega | date:"d/m/Y" }}</span>
     </div>
     <div class="my_menu2">
-      <p>Entregue:</p><span>{% if pedido.entregue %}<p>Entregue</p>{% else %}<p>Não Entregue</p>{% endif %}</span>
+      <p>Entregue:</p><span id="entregue">{% if pedido.entregue %}<p>Entregue</p>{% else %}<p>Não Entregue</p>{% endif %}</span>
+    </div>
+    <div class="my_menu2">
+      <p>Valor:</p><span>R$ <span id="valor">{% load display_decimals %}{{ pedido.total|display_decimals }}</span></span>
     </div>
     <div class="my_menu2">
       <p>A pagar:</p><span>R$ <span id="debito">{{ pedido.debito|display_decimals }}</span></span>
@@ -49,7 +51,7 @@
 
 {% block script %}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
-  <script src="/static/js/pedidos_detalhe_react/main.212ac6b3.js"></script>
+  <script src="/static/js/pedidos_detalhe_react/main.c84e7680.js"></script>
   <script>
     function initPedidos(){
       var data = {id: {{ pedido.id }}};

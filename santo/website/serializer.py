@@ -105,6 +105,7 @@ class PedidoSerializer (serializers.Serializer):
     quantidade = serializers.DecimalField(decimal_places=2, localize=True, max_digits=5)
     valor = serializers.DecimalField(decimal_places=2, localize=True, max_digits=5, required=False)
     total = serializers.DecimalField(decimal_places=2, localize=True, max_digits=6, required=False)
+    id = serializers.IntegerField(required=False)
 
 
 class ListPedidoSerializer (serializers.Serializer):
@@ -160,3 +161,4 @@ class PedidosFilterSerializer (serializers.Serializer):
     id = serializers.IntegerField(required=False)
     debito = serializers.DecimalField(decimal_places=2, localize=True, max_digits=7, required=False)
     boolean = serializers.BooleanField(required=False)
+    valor = serializers.DecimalField(decimal_places=2, localize=True, max_digits=5, required=False)
