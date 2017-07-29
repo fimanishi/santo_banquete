@@ -33,6 +33,7 @@ urlpatterns = [
     url(r'^pedidos/detalhe/list/$', website.views_api.pedidos_detalhe_list, name="pedidos_detalhe_list"),
     url(r'^pedidos/detalhe/pedido/$', website.views_api.pedidos_detalhe_pedido, name="pedidos_detalhe_pedido"),
     url(r'^pedidos/detalhe/delete/$', website.views_api.pedidos_detalhe_delete, name="pedidos_detalhe_delete"),
+    url(r'^pedidos/detalhe/update/$', website.views_api.pedidos_detalhe_update, name="pedidos_detalhe_update"),
     url(r'^producao/add/$', website.views_api.producao_add, name="producao_add"),
     url(r'^producao/filter/$', website.views_api.producao_filter, name="producao_filter"),
     url(r'^producao/delete/$', website.views_api.producao_delete, name="producao_delete"),

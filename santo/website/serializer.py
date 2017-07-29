@@ -162,3 +162,4 @@ class PedidosFilterSerializer (serializers.Serializer):
     debito = serializers.DecimalField(decimal_places=2, localize=True, max_digits=7, required=False)
     boolean = serializers.BooleanField(required=False)
     valor = serializers.DecimalField(decimal_places=2, localize=True, max_digits=5, required=False)
+    quantidade = serializers.DecimalField(decimal_places=2, localize=True, max_digits=5, required=False)

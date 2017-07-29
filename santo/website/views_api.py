@@ -819,9 +819,9 @@ def pedidos_detalhe_pedido(request):
                 status = "Entregue"
             else:
                 status = "Não Entregue"
-            if pedido.debito - serializer.validated_data["debito"] < 0:
+            if pedido.debito - serializer.validated_data["debito"] <= 0:
                 pedido.debito = 0
-
+                pedido.pago = True
             else:
                 pedido.debito -= serializer.validated_data["debito"]
             pedido.cliente.credito += serializer.validated_data["debito"]
@@ -842,6 +842,7 @@ def pedidos_detalhe_delete(request):
             item = models.PedidoDetalhe.objects.get(id=serializer.validated_data["id"])
             if item.pedido.debito < item.total:
                 item.pedido.debito = 0
+                item.pedido.pago = True
             else:
                 item.pedido.debito -= item.total
             item.pedido.total -= item.total
@@ -860,9 +861,58 @@ def pedidos_detalhe_delete(request):
                          "valor": item.valor_unitario,
                          "total": item.total})
             s = website.serializer.PedidoSerializer(pedidos_detalhe, many=True)
-            print(s.data)
+            if not s.data and item.pedido.delivery_valor > 0:
+                item.pedido.cliente.credito += item.pedido.delivery_valor
+                item.pedido.delivery_valor = 0
+                item.pedido.debito = 0
+                item.pedido.pago = True
+                item.pedido.cliente.save()
+                item.pedido.save()
             pedido = models.Pedido.objects.get(id=id)
             info = {"id": pedido.id, "debito": pedido.debito, "status": status, "boolean": pedido.entregue,
                     "valor": pedido.total}
             d = website.serializer.PedidosFilterSerializer(info)
             return Response({"list": s.data, "info": d.data})
+
+
+@api_view(["POST"])
+@login_required
+def pedidos_detalhe_update(request):
+    if request.method == "POST":
+        pedidos_detalhe = []
+        serializer = website.serializer.PedidosFilterSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            item = models.PedidoDetalhe.objects.get(id=serializer.validated_data["id"])
+            id = item.pedido.id
+            message = "failure"
+            if serializer.validated_data["quantidade"] > 0:
+                net = item.valor_unitario * (serializer.validated_data["quantidade"] - item.quantidade)
+                if item.pedido.debito < -net:
+                    item.pedido.debito = 0
+                    item.pedido.pago = True
+                else:
+                    item.pedido.debito += net
+                    if item.pedido.debito == 0:
+                        item.pedido.pago = True
+                item.quantidade = serializer.validated_data["quantidade"]
+                item.pedido.total += net
+                item.pedido.cliente.credito -= net
+                item.produto.estoque += serializer.validated_data["quantidade"] - item.quantidade
+                item.pedido.save()
+                item.pedido.cliente.save()
+                item.produto.save()
+                item.save()
+                message = "update"
+            filtered = models.PedidoDetalhe.objects.filter(pedido=id)
+            if filtered:
+                for item in filtered:
+                    pedidos_detalhe.append(
+                        {"id": item.id, "produto": item.produto.nome, "quantidade": item.quantidade,
+                         "valor": item.valor_unitario,
+                         "total": item.total})
+            s = website.serializer.PedidoSerializer(pedidos_detalhe, many=True)
+            pedido = models.Pedido.objects.get(id=id)
+            info = {"id": pedido.id, "debito": pedido.debito, "status": status, "boolean": pedido.entregue,
+                    "valor": pedido.total}
+            d = website.serializer.PedidosFilterSerializer(info)
+            return Response({"list": s.data, "info": d.data, "message": message})
