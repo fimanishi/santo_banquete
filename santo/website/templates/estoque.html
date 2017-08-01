@@ -66,7 +66,7 @@
           </div>
         </div>
         <div>
-          <p>Valor:</p>
+          <p>Valor por unidade:</p>
           <div>
             <div style="margin-bottom: 5px;" class="last_production_line input-group">
               <input id="valor" type="text" class="field_sizing form-control" placeholder="Valor" aria-describedby="basic-addon1" name="valor">
@@ -89,7 +89,7 @@
             Ingrediente: <span id="ingrediente_modal"></span><br>
             Quantidade: <span id="quantidade_modal"></span><br>
             Unidade: <span id="unidade_modal"></span> {{ ingredient.unidade }}<br/>
-            Valor: R$ <span id="valor_modal"></span>
+            Total: R$ <span id="valor_modal"></span>
           </div>
           <div class="modal-footer">
             <form id="modal_form">
@@ -111,7 +111,7 @@
 {% block script %}
   <script src="/static/js/js/bootstrap-select.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
-  <script src="/static/js/estoque_add_react/main.4fe2cd46.js"></script>
+  <script src="/static/js/estoque_add_react/main.2a4afc95.js"></script>
   <script>
 
     // creates an object with the types as keys and products as values
@@ -140,6 +140,7 @@
       axios.post("/estoque/add/init/")
         .then(function (result) {
           store.dispatch(updateFiltered(result.data.cart, "list"));
+          document.getElementById("subtotal").innerHTML = result.data.valor;
         })
         .catch(function (error) {
           console.log(error);
@@ -170,7 +171,8 @@
         $("#stock_form").attr("method", "POST");
         document.getElementById("quantidade_modal").innerHTML = qtd;
         document.getElementById("ingrediente_modal").innerHTML = igt;
-        document.getElementById("valor_modal").innerHTML = vlr;
+        document.getElementById("valor_modal").innerHTML = (parseFloat(vlr.replace(",", ".")) *
+        parseFloat(qtd.replace(",", "."))).toFixed(2).toString().replace(".", ",");
         document.getElementById("unidade_modal").innerHTML = und;
         $("#myModal").modal();
       }
@@ -184,7 +186,7 @@
       data = {};
       data["ingrediente"] = document.getElementById("ingredient_list").value;
       data["quantidade"] = document.getElementById("quantidade_value").value;
-      data["unidade"] = document.getElementById("quantidade_unidade").value;
+      data["por_unidade"] = document.getElementById("quantidade_unidade").value;
       data["valor"] = document.getElementById("valor").value;
       $('.selectpicker').selectpicker('val', '');
       document.getElementById("quantidade_value").value = "";

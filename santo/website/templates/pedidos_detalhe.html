@@ -57,7 +57,6 @@
       var data = {id: {{ pedido.id }}};
       axios.post("/pedidos/detalhe/list/", data)
         .then (function (result){
-          console.log(result.data.info);
           store.dispatch(updateFiltered(result.data.list, result.data.info, ""))
         })
         .catch (function (error){

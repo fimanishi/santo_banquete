@@ -19,12 +19,18 @@
   <form onsubmit="return validateForm()">
     {% csrf_token %}
     <div style="text-align: center;" class="my_menu2">
-      <h4>Insira nome e/ou telefone:</h4>
+      <h4>Insira nome, referência ou telefone:</h4>
     </div>
     <div class="my_menu2">
       <div class="long-field input-group">
         <p>Nome:</p>
         <input id="nome" type="text" class="field_sizing form-control" placeholder="Nome" aria-describedby="basic-addon1" name="nome">
+      </div>
+    </div>
+    <div class="my_menu2">
+      <div class="long-field input-group">
+        <p>Referência:</p>
+        <input id="referencia" type="text" class="field_sizing form-control" placeholder="Referência" aria-describedby="basic-addon1" name="referencia">
       </div>
     </div>
     <div class="my_menu2">
@@ -49,34 +55,32 @@
     // creates an object with the types as keys and products as values
 
     function validateForm() {
-      var check = document.activeElement.value;
-      if (check === "filter"){
-        var data = {};
-        data.nome = document.getElementById("nome").value;
-        data.telefone = document.getElementById("telefone").value;
-        if (data.nome || data.telefone){
-          axios.post("/escolher_cliente/filter/", data)
-            .then(function(result){
-              try {
-                if(result.data === "empty"){
-                  store.dispatch(updateFiltered([], "empty"));
-                }
-                else {
-                  store.dispatch(updateFiltered(result.data, "list"));
-                }
-              } catch (e) {
-                console.error(e);
+      var data = {};
+      data.nome = document.getElementById("nome").value;
+      data.telefone = document.getElementById("telefone").value;
+      data.referencia = document.getElementById("referencia").value;
+      if (data.nome || data.telefone || data.referencia){
+        axios.post("/escolher_cliente/filter/", data)
+          .then(function(result){
+            try {
+              if(result.data === "empty"){
+                store.dispatch(updateFiltered([], "empty"));
               }
+              else {
+                store.dispatch(updateFiltered(result.data, "list"));
+              }
+            } catch (e) {
+              console.error(e);
+            }
 
-            })
-            .catch(function(error){
+          })
+          .catch(function(error){
 {#              store.dispatch(updateFiltered([], "fail"));#}
-              console.log(error);
-            })
-        }
-        else{
-          store.dispatch(updateFiltered([], "add"));
-        }
+            console.log(error);
+          })
+      }
+      else{
+        store.dispatch(updateFiltered([], "add"));
       }
       return false;
     }
@@ -92,9 +96,6 @@
         document.getElementById("telefone").value = "";
       }
     }
-
-
-
 
   </script>
 {% endblock %}

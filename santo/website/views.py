@@ -73,11 +73,14 @@ def pedidos(request):
 
 @login_required
 def finalizar_pedido(request):
+    cliente = models.Cliente.objects.get(id=request.session["cart_user"]["id"])
     context = {
         "cliente": request.session["cart_user"],
-        "subtotal": request.session["cart_total"]
+        "subtotal": request.session["cart_total"],
+        "credito" : cliente.credito,
     }
     request.session["delivery"] = 0
+    request.session["desconto"] = 0
     request.session.save()
     return TemplateResponse(request, "finalizar_pedido.html", context)
 

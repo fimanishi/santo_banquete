@@ -108,6 +108,7 @@ class Pedido(models.Model):
     delivery = models.BooleanField()
     delivery_valor = models.FloatField()
     debito = models.FloatField()
+    desconto = models.FloatField()
 
 
 class PedidoDetalhe(models.Model):

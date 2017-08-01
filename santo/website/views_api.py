@@ -53,9 +53,11 @@ def cliente_add(request):
                                                       telefone=serializer.validated_data["telefone"],
                                                       tipo=serializer.validated_data["tipo"],
                                                       endereco=serializer.validated_data["endereco"].lower(),
-                                                      bairro=models.Bairro.objects.get(nome=serializer.validated_data["bairro"]),
+                                                      bairro=models.Bairro.objects.get(
+                                                          nome=serializer.validated_data["bairro"]),
                                                       cidade=serializer.validated_data["cidade"].lower(),
-                                                      referencia=serializer.validated_data["referencia"].lower())
+                                                      referencia=serializer.validated_data["referencia"].lower(),
+                                                      credito=0)
                         # gets the id from the new client. this id will be passed to next view
                         client = models.Cliente.objects.last()
                         user_json = {"id": client.id, "nome": client.nome.title()}
@@ -68,9 +70,11 @@ def cliente_add(request):
                                               telefone=serializer.validated_data["telefone"],
                                               tipo=serializer.validated_data["tipo"],
                                               endereco=serializer.validated_data["endereco"].lower(),
-                                              bairro=models.Bairro.objects.get(nome=serializer.validated_data["bairro"]),
+                                              bairro=models.Bairro.objects.get(
+                                                  nome=serializer.validated_data["bairro"]),
                                               cidade=serializer.validated_data["cidade"].lower(),
-                                              referencia=serializer.validated_data["referencia"].lower())
+                                              referencia=serializer.validated_data["referencia"].lower(),
+                                              credito=0)
                 # gets the id from the new client. this id will be passed to next view
                 client = models.Cliente.objects.last()
                 user_json = {"id": client.id, "nome": client.nome.title()}
@@ -132,6 +136,20 @@ def finalizar_pedido_delivery_update(request):
 
 @api_view(["POST"])
 @login_required
+def finalizar_pedido_desconto(request):
+    if request.method == "POST":
+        serializer = website.serializer.DeliverySerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            net = request.session["desconto"] - float(serializer.validated_data["valor"])
+            request.session["cart_total"] += net
+            request.session["desconto"] = float(serializer.validated_data["valor"])
+            request.session.save()
+            s = website.serializer.DeliverySerializer({"valor": request.session["cart_total"]})
+            return Response(s.data)
+
+
+@api_view(["POST"])
+@login_required
 def finalizar_pedido_finish(request):
     if request.method == "POST":
         serializer = website.serializer.DataSerializer(data=request.data)
@@ -151,7 +169,8 @@ def finalizar_pedido_finish(request):
                                              data_entrega=serializer.validated_data["data"],
                                              pago=False,
                                              entregue=False,
-                                             debito=request.session["cart_total"] - float(credito)
+                                             debito=request.session["cart_total"] - float(credito),
+                                             desconto=request.session["desconto"],
                                              )
                 pedido = models.Pedido.objects.last()
                 for item in request.session["cart"]:
@@ -177,19 +196,33 @@ def escolher_cliente_filter(request):
     if request.method == "POST":
         # gets cliente from ClienteSearch form
         serializer = website.serializer.ClienteSearchSerializer(data=request.data)
+        print(serializer)
         if serializer.is_valid(raise_exception=True):
             # if the user inputs nome and telefone, filters for a match for both
             if serializer.validated_data["nome"] and serializer.validated_data["telefone"]:
-                filtered = models.Cliente.objects.filter(nome__icontains=serializer.validated_data["nome"], telefone=serializer.validated_data["telefone"]).order_by("nome")
+                filtered = models.Cliente.objects.filter(nome__icontains=serializer.validated_data["nome"],
+                                                         telefone=serializer.validated_data["telefone"]).order_by(
+                                                        "nome")
+            elif serializer.validated_data["nome"] and serializer.validated_data["referencia"]:
+                filtered = models.Cliente.objects.filter(nome__icontains=serializer.validated_data["nome"],
+                                                         referencia__icontains=serializer.validated_data[
+                                                             "referencia"]).order_by("nome")
             # if the user inputs nome, filters for a match that contains nome
             elif serializer.validated_data["nome"]:
-                filtered = models.Cliente.objects.filter(nome__icontains=serializer.validated_data["nome"]).order_by("nome")
+                filtered = models.Cliente.objects.filter(nome__icontains=serializer.validated_data["nome"]).order_by(
+                                                        "nome")
             # if the user inputs telefone, filters for a match for the telefone
             elif serializer.validated_data["telefone"]:
-                filtered = models.Cliente.objects.filter(telefone=serializer.validated_data["telefone"]).order_by("nome")
+                filtered = models.Cliente.objects.filter(telefone=serializer.validated_data["telefone"]).order_by(
+                                                        "nome")
+            elif serializer.validated_data["referencia"]:
+                filtered = models.Cliente.objects.filter(
+                    referencia__icontains=serializer.validated_data["referencia"]).order_by("nome")
             if filtered:
                 for i in filtered:
-                    filtered_json.append({"id": i.id, "nome": i.nome.title(), "telefone": i.telefone, "endereco": i.endereco.title(), "bairro": i.bairro, "cidade": i.cidade.title()})
+                    filtered_json.append({"id": i.id, "nome": i.nome.title(), "telefone": i.telefone,
+                                          "endereco": i.endereco.title(), "bairro": i.bairro,
+                                          "cidade": i.cidade.title()})
                 s = website.serializer.ClienteSerializer(filtered_json, many=True)
                 return Response(s.data)
             else:
@@ -424,13 +457,15 @@ def estoque_add(request):
             request.session["cart"].append({"ingrediente": serializer.validated_data["ingrediente"],
                                             "quantidade": float(serializer.validated_data["quantidade"]),
                                             "valor": float(serializer.validated_data["valor"]),
-                                            "unidade": float(serializer.validated_data["unidade"])
+                                            "total": round(float(serializer.validated_data["valor"]) *
+                                                           float(serializer.validated_data["quantidade"]), 2),
+                                            "unidade": float(serializer.validated_data["por_unidade"])
                                             })
             request.session.save()
             s = website.serializer.EstoqueSerializer(request.session["cart"], many=True)
             valor = 0
             for i in request.session["cart"]:
-                valor += i["valor"]
+                valor += i["total"]
             valor = "{:.2f}".format(valor).replace(".", ",")
             return Response({"cart": s.data, "valor": valor})
 
@@ -447,13 +482,15 @@ def estoque_add_update(request):
                 if item["ingrediente"] == serializer.validated_data["ingrediente"]:
                     item["quantidade"] = float(serializer.validated_data["quantidade"])
                     item["valor"] = float(serializer.validated_data["valor"])
-                    item["unidade"] = float(serializer.validated_data["unidade"])
+                    item["unidade"] = float(serializer.validated_data["por_unidade"])
+                    item["total"] = round(float(serializer.validated_data["valor"]) *
+                                          float(serializer.validated_data["quantidade"]), 2)
                     break
             request.session.save()
             s = website.serializer.EstoqueSerializer(request.session["cart"], many=True)
             valor = 0
             for i in request.session["cart"]:
-                valor += i["valor"]
+                valor += i["total"]
             valor = "{:.2f}".format(valor).replace(".", ",")
             return Response({"cart": s.data, "valor": valor})
 
@@ -474,7 +511,7 @@ def estoque_add_delete(request):
             s = website.serializer.EstoqueSerializer(request.session["cart"], many=True)
             valor = 0
             for i in request.session["cart"]:
-                valor += i["valor"]
+                valor += i["total"]
             valor = "{:.2f}".format(valor).replace(".", ",")
             return Response({"cart": s.data, "valor": valor})
 
@@ -500,20 +537,25 @@ def estoque_filter(request):
                 # if the user also filters by tipo
                 elif serializer.validated_data["tipo"]:
                     # filters from the Ingrediente model by date and tipo
-                    filtered = models.Ingrediente.objects.filter(ultima_compra__gte=serializer.validated_data["data_field"], tipo = serializer.validated_data["tipo"]).order_by("-ultima_compra")
+                    filtered = models.Ingrediente.objects.filter(
+                        ultima_compra__gte=serializer.validated_data["data_field"],
+                        tipo=serializer.validated_data["tipo"]).order_by("-ultima_compra")
                 # if the user only filtered by date
                 else:
-                    filtered = models.Ingrediente.objects.filter(ultima_compra__gte=serializer.validated_data["data_field"]).order_by("-ultima_compra")
+                    filtered = models.Ingrediente.objects.filter(
+                        ultima_compra__gte=serializer.validated_data["data_field"]).order_by("-ultima_compra")
             # if the user doesn't provide the date
             else:
                 # if the user filtered by ingrediente
                 if serializer.validated_data["ingrediente"]:
                     # filters from the Ingrediente model by ingrediente
-                    filtered = models.Ingrediente.objects.filter(nome = serializer.validated_data["ingrediente"]).order_by("nome")
+                    filtered = models.Ingrediente.objects.filter(
+                        nome=serializer.validated_data["ingrediente"]).order_by("nome")
                 # if the user filtered by tipo
                 elif serializer.validated_data["tipo"]:
                     # filters from the Ingrediente model by tipo
-                    filtered = models.Ingrediente.objects.filter(tipo = serializer.validated_data["tipo"]).order_by("nome")
+                    filtered = models.Ingrediente.objects.filter(
+                        tipo=serializer.validated_data["tipo"]).order_by("nome")
             if filtered:
                 for i in filtered:
                     filtered_json.append({"estoque": i.estoque, "id": i.id, "ingrediente": i.nome,
@@ -692,7 +734,8 @@ def finalizar_pedido_init(request):
     if request.method == "POST":
         serialized_session = website.serializer.ListPedidoSerializer({
             "cart": request.session["cart_serializer"], "total": request.session["cart_total"]})
-        return Response(serialized_session.data)
+        s = website.serializer.PedidosFilterSerializer({"data_output": date.today()})
+        return Response({"bulk": serialized_session.data, "date": s.data})
 
 
 @api_view(["POST"])
@@ -702,7 +745,7 @@ def estoque_add_init(request):
         s = website.serializer.EstoqueSerializer(request.session["cart"], many=True)
         valor = 0
         for i in request.session["cart"]:
-            valor += i["valor"]
+            valor += i["total"]
         valor = "{:.2f}".format(valor).replace(".", ",")
         return Response({"cart": s.data, "valor": valor})
 
@@ -775,6 +818,22 @@ def pedidos_filter_delete(request):
 
 @api_view(["POST"])
 @login_required
+def pedidos_filter_done(request):
+    if request.method == "POST":
+        serializer = website.serializer.PedidosFilterSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            pedido = models.Pedido.objects.get(id=serializer.validated_data["id"])
+            pedido.debito = 0
+            pedido.entregue = True
+            pedido.pago = True
+            cliente = models.Cliente.objects.get(id=pedido.cliente.id)
+            cliente.credito += pedido.total
+            cliente.save()
+            pedido.save()
+            return Response("success")
+
+@api_view(["POST"])
+@login_required
 def pedidos_detalhe_list(request):
     if request.method == "POST":
         pedidos_detalhe = []
@@ -786,7 +845,6 @@ def pedidos_detalhe_list(request):
                     pedidos_detalhe.append(
                         {"id": item.id, "produto": item.produto.nome, "quantidade": item.quantidade, "valor": item.valor_unitario,
                          "total": item.total})
-                    print(item.produto.nome)
             s = website.serializer.PedidoSerializer(pedidos_detalhe, many=True)
             pedido = models.Pedido.objects.get(id=serializer.validated_data["id"])
             if pedido.entregue:
@@ -795,7 +853,6 @@ def pedidos_detalhe_list(request):
                 status = "Não Entregue"
             info = {"debito": pedido.debito, "status": status, "boolean": pedido.entregue, "id": pedido.id}
             d = website.serializer.PedidosFilterSerializer(info)
-            print(s.data)
             return Response({"list": s.data, "info": d.data})
 
 
