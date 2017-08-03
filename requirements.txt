@@ -4,3 +4,4 @@ fabric3
 whitenoise
 django-localflavor
 djangorestframework
+psycopg2
