@@ -3,8 +3,8 @@ from fabric.api import run, env, sudo, cd, prefix
 env.hosts = ['104.131.83.165']
 env.user = 'santo'
 
-DIR = '/home/santo/santo_banquete'
-VENV = 'source /home/santo/.virtualenvs/santo_banquete/bin/activate && source SECRETS.ENV'
+DIR = '/home/santo/santo_banquete/santo'
+VENV = 'source /home/santo/.virtualenvs/santo_banquete/bin/activate'
 
 def start ():
   with cd(DIR):
