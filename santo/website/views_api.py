@@ -242,13 +242,16 @@ def escolher_fornecedor_filter(request):
             # if the user inputs nome and telefone, filters for a match for both
             if serializer.validated_data["nome"] and serializer.validated_data["contato"]:
                 filtered = models.Fornecedor.objects.filter(nome__icontains=serializer.validated_data["nome"],
-                                                            contato__icontains=serializer.validated_data["contato"]).order_by("nome")
+                                                            contato__icontains=serializer.validated_data[
+                                                                "contato"]).order_by("nome")
             # if the user inputs nome, filters for a match that contains nome
             elif serializer.validated_data["nome"]:
-                filtered = models.Fornecedor.objects.filter(nome__icontains=serializer.validated_data["nome"]).order_by("nome")
+                filtered = models.Fornecedor.objects.filter(nome__icontains=serializer.validated_data[
+                    "nome"]).order_by("nome")
             # if the user inputs telefone, filters for a match for the telefone
             elif serializer.validated_data["contato"]:
-                filtered = models.Fornecedor.objects.filter(contato__icontains=serializer.validated_data["contato"]).order_by("nome")
+                filtered = models.Fornecedor.objects.filter(contato__icontains=serializer.validated_data[
+                    "contato"]).order_by("nome")
             if filtered:
                 for i in filtered:
                     filtered_json.append({"id": i.id, "nome": i.nome.title(), "telefone": i.telefone,
@@ -280,7 +283,8 @@ def producao_add(request):
                 # gets the item from the Ingrediente model using the relational quantidade_id
                 ingredient_to_change = models.Ingrediente.objects.get(id=quantidade_get.ingrediente_id)
                 # subtracts from the estoque of that item the quantidade_unitaria for the product times the quantidade
-                ingredient_to_change.estoque -= quantidade_get.quantidade_unitaria * serializer.validated_data["quantidade"]
+                ingredient_to_change.estoque -= quantidade_get.quantidade_unitaria * serializer.validated_data[
+                    "quantidade"]
                 # saves the Ingrediente db
                 ingredient_to_change.save()
             # checks to see if the produto was already added to the producao today
@@ -294,7 +298,8 @@ def producao_add(request):
             # if this produto was not added to the producao today
             except ObjectDoesNotExist:
                 # adds the produto produced to the Producao model
-                models.Producao.objects.create(produto=product_id, quantidade=serializer.validated_data["quantidade"], usuario=request.user)
+                models.Producao.objects.create(produto=product_id,
+                                               quantidade=serializer.validated_data["quantidade"], usuario=request.user)
             # produto was either update or added successfully
             return Response("added")
         else:
@@ -317,27 +322,35 @@ def producao_filter(request):
                 # if the user also added a produto
                 if serializer.validated_data["produto"]:
                     # filters from the Producao model by date and produto
-                    filtered = models.Producao.objects.filter(data__gte = serializer.validated_data["data_field"], produto_id__nome = serializer.validated_data["produto"]).order_by("-data")
+                    filtered = models.Producao.objects.filter(data__gte = serializer.validated_data["data_field"],
+                                                              produto_id__nome = serializer.validated_data[
+                                                                  "produto"]).order_by("-data")
                 # if the user only added the tipo and date
                 elif serializer.validated_data["tipo"]:
                     # filters from the Producao model by date and tip
-                    filtered = models.Producao.objects.filter(data__gte = serializer.validated_data["data_field"], produto_id__tipo = serializer.validated_data["tipo"]).order_by("-data")
+                    filtered = models.Producao.objects.filter(data__gte = serializer.validated_data["data_field"],
+                                                              produto_id__tipo = serializer.validated_data[
+                                                                  "tipo"]).order_by("-data")
                 # if the user only filtered by date
                 else:
-                    filtered = models.Producao.objects.filter(data__gte=serializer.validated_data["data_field"]).order_by("-data")
+                    filtered = models.Producao.objects.filter(data__gte=serializer.validated_data[
+                        "data_field"]).order_by("-data")
             # if the user doesn't provide the date
             elif not serializer.validated_data["data_field"]:
                 # if the user provided the produto
                 if serializer.validated_data["produto"]:
                     # filters from the Producao model by produto
-                    filtered = models.Producao.objects.filter(produto_id__nome = serializer.validated_data["produto"]).order_by("-data")
+                    filtered = models.Producao.objects.filter(produto_id__nome = serializer.validated_data[
+                        "produto"]).order_by("-data")
                 # if the user provided only the tipo
                 elif serializer.validated_data["tipo"]:
                     # filters from the Producao model by tip
-                    filtered = models.Producao.objects.filter(produto_id__tipo = serializer.validated_data["tipo"]).order_by("-data")
+                    filtered = models.Producao.objects.filter(produto_id__tipo = serializer.validated_data[
+                        "tipo"]).order_by("-data")
             if filtered:
                 for i in filtered:
-                    filtered_json.append({"quantidade": float(i.quantidade), "id": i.id, "produto": i.produto.nome, "data_output": i.data})
+                    filtered_json.append({"quantidade": float(i.quantidade), "id": i.id, "produto": i.produto.nome,
+                                          "data_output": i.data})
                 s = website.serializer.ProducaoSerializer(filtered_json, many=True)
                 return Response(s.data)
             else:
@@ -370,7 +383,8 @@ def producao_delete(request):
                         # gets the item from the Ingrediente model using the relational quantidade_id
                         ingredient_to_change = models.Ingrediente.objects.get(id=quantidade_get.ingrediente_id)
                         # subtracts from the estoque of that item the quantidade_unitaria for the product times the quantidade
-                        ingredient_to_change.estoque += quantidade_get.quantidade_unitaria * serializer.validated_data["quantidade"]
+                        ingredient_to_change.estoque += quantidade_get.quantidade_unitaria * serializer.validated_data[
+                            "quantidade"]
                         # saves the Ingrediente db
                         ingredient_to_change.save()
                     return Response(True)
@@ -796,7 +810,8 @@ def pedidos_filter(request):
                 else:
                     pagamento = "Não Pago"
                 nome = models.Cliente.objects.get(id=i.cliente_id).nome
-                filtered_json.append({"id": i.id, "nome": nome.title(), "data_output": i.data, "status": status, "pagamento": pagamento})
+                filtered_json.append({"id": i.id, "nome": nome.title(), "data_output": i.data, "status": status,
+                                      "pagamento": pagamento})
             s = website.serializer.PedidosFilterSerializer(filtered_json, many=True)
             return Response(s.data)
 
@@ -843,8 +858,8 @@ def pedidos_detalhe_list(request):
             if filtered:
                 for item in filtered:
                     pedidos_detalhe.append(
-                        {"id": item.id, "produto": item.produto.nome, "quantidade": item.quantidade, "valor": item.valor_unitario,
-                         "total": item.total})
+                        {"id": item.id, "produto": item.produto.nome, "quantidade": item.quantidade,
+                         "valor": item.valor_unitario, "total": item.total})
             s = website.serializer.PedidoSerializer(pedidos_detalhe, many=True)
             pedido = models.Pedido.objects.get(id=serializer.validated_data["id"])
             if pedido.entregue:
@@ -867,8 +882,8 @@ def pedidos_detalhe_pedido(request):
             if filtered:
                 for item in filtered:
                     pedidos_detalhe.append(
-                        {"id": item.id, "produto": item.produto.nome, "quantidade": item.quantidade, "valor": item.valor_unitario,
-                         "total": item.total})
+                        {"id": item.id, "produto": item.produto.nome, "quantidade": item.quantidade,
+                         "valor": item.valor_unitario, "total": item.total})
             s = website.serializer.PedidoSerializer(pedidos_detalhe, many=True)
             pedido = models.Pedido.objects.get(id=serializer.validated_data["id"])
             pedido.entregue = serializer.validated_data["boolean"]
@@ -973,3 +988,4 @@ def pedidos_detalhe_update(request):
                     "valor": pedido.total}
             d = website.serializer.PedidosFilterSerializer(info)
             return Response({"list": s.data, "info": d.data, "message": message})
+

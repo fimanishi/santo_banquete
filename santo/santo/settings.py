@@ -138,6 +138,8 @@ EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
 EMAIL_PORT = 587
 
 
+LOGIN_URL = "/"
+
 # REST_FRAMEWORK permissions
 #
 # REST_FRAMEWORK = {

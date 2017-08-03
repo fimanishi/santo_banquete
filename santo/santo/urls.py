@@ -1,18 +1,3 @@
-"""santo URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/1.11/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  url(r'^$', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  url(r'^$', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.conf.urls import url, include
-    2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
-"""
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth.views import logout
@@ -52,7 +37,8 @@ urlpatterns = [
     url(r'^estoque/$', website.views.estoque, name="estoque"),
     url(r'^estoque_selection/$', website.views.estoque_selection, name="estoque_selection"),
     url(r'^escolher_fornecedor/$', website.views.escolher_fornecedor, name="escolher_fornecedor"),
-    url(r'^escolher_fornecedor/filter/$', website.views_api.escolher_fornecedor_filter, name="escolher_fornecedor_filter"),
+    url(r'^escolher_fornecedor/filter/$', website.views_api.escolher_fornecedor_filter,
+        name="escolher_fornecedor_filter"),
     url(r'^adicionar_cliente/$', website.views.adicionar_cliente, name="adicionar_cliente"),
     url(r'^novo_pedido/$', website.views.novo_pedido, name="novo_pedido"),
     url(r'^novo_pedido/add/$', website.views_api.novo_pedido_add, name="novo_pedido_add"),
@@ -62,7 +48,8 @@ urlpatterns = [
     url(r'^escolher_cliente/filter/$', website.views_api.escolher_cliente_filter, name="escolher_cliente_filter"),
     url(r'^cliente/update/$', website.views_api.cliente_update, name="cliente_update"),
     url(r'^cliente/add/$', website.views_api.cliente_add, name="cliente_add"),
-    url(r'^finalizar_pedido/delivery/update/$', website.views_api.finalizar_pedido_delivery_update, name="finalizar_pedido_delivery_update"),
+    url(r'^finalizar_pedido/delivery/update/$', website.views_api.finalizar_pedido_delivery_update,
+        name="finalizar_pedido_delivery_update"),
     url(r'^finalizar_pedido/$', website.views.finalizar_pedido, name="finalizar_pedido"),
     url(r'^finalizar_pedido/init/$', website.views_api.finalizar_pedido_init, name="finalizar_pedido_init"),
     url(r'^finalizar_pedido/desconto/$', website.views_api.finalizar_pedido_desconto, name="finalizar_pedido_desconto"),

@@ -12,3 +12,21 @@
     <button type="submit" class="btn btn-default">Entrar</button>
   </form>
 {% endblock %}
+
+{% block content %}
+  <img style="display: block; margin: 0 auto; padding-right: 1px" height="300px" width="300px" src="/static/media/logo2.jpeg">
+  <div style="display: flex; justify-content: center; align-items: center;">
+    <form action="./" method="POST">
+      {% csrf_token %}
+      <div style="display: block; margin-bottom: 20px" class="form-group">
+        <input type="text" class="form-control" placeholder="Usuário" name="user_name">
+      </div>
+      <div style="display: block; margin-bottom: 20px" class="form-group">
+        <input type="password" class="form-control" placeholder="Senha" name="user_password">
+      </div>
+      <div style="display: flex; justify-content: center;">
+        <button style="margin: 0 auto;" type="submit" class="btn btn-default">Entrar</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}
