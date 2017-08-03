@@ -4,7 +4,7 @@ env.hosts = ['104.131.83.165']
 env.user = 'santo'
 
 DIR = '/home/santo/santo_banquete/santo'
-VENV = 'source /home/santo/.virtualenvs/santo_banquete/bin/activate'
+VENV = 'source  /home/santo/.virtualenvs/santo/bin/activate'
 
 def start ():
   with cd(DIR):
