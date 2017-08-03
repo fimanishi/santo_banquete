@@ -21,6 +21,7 @@ def deploy ():
     with prefix(VENV):
       run('pip install -r requirements.txt  > install.log')
       run('python manage.py migrate')
+      run('python manage.py collectstatic --noinput')
 
     run('pm2 restart all > restart.log')
 
