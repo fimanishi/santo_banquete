@@ -473,7 +473,7 @@ def estoque_add(request):
                                             "valor": float(serializer.validated_data["valor"]),
                                             "total": round(float(serializer.validated_data["valor"]) *
                                                            float(serializer.validated_data["quantidade"]), 2),
-                                            "unidade": float(serializer.validated_data["por_unidade"])
+                                            "por_unidade": float(serializer.validated_data["por_unidade"])
                                             })
             request.session.save()
             s = website.serializer.EstoqueSerializer(request.session["cart"], many=True)
@@ -496,7 +496,7 @@ def estoque_add_update(request):
                 if item["ingrediente"] == serializer.validated_data["ingrediente"]:
                     item["quantidade"] = float(serializer.validated_data["quantidade"])
                     item["valor"] = float(serializer.validated_data["valor"])
-                    item["unidade"] = float(serializer.validated_data["por_unidade"])
+                    item["por_unidade"] = float(serializer.validated_data["por_unidade"])
                     item["total"] = round(float(serializer.validated_data["valor"]) *
                                           float(serializer.validated_data["quantidade"]), 2)
                     break

@@ -80,6 +80,9 @@ select {
   .delete_button {
     margin-left: 50px;"
   }
+  .add_flex > div {
+    display: inline-block;
+  }
 }
 
 .message {
