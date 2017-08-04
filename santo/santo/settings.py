@@ -24,7 +24,6 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'dev')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-
 ALLOWED_HOSTS = ["104.131.83.165", "localhost", "www.santobanquete.com"]
 
 
