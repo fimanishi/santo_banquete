@@ -152,8 +152,10 @@ def finalizar_pedido_desconto(request):
 @login_required
 def finalizar_pedido_finish(request):
     if request.method == "POST":
+        print("pass1")
         serializer = website.serializer.DataSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
+            print("pass2")
             if len(request.session["cart"]) > 0:
                 cliente = models.Cliente.objects.get(id=request.session["cart_user"]["id"])
                 if cliente.credito > 0:
