@@ -31,26 +31,26 @@
     <div style="display: flex; justify-content: space-between;" class="input-group">
       <form id="delivery">
         <label class="radio-inline"><input type="radio" name="delivery" value="True" onchange="updateDelivery()">Sim</label>
-        <label class="radio-inline"><input type="radio" name="delivery" value="False" onchange="updateDelivery()">Não</label>
+        <label class="radio-inline"><input type="radio" name="delivery" value="False" onchange="updateDelivery()" checked="checked">Não</label>
       </form>
     </div>
   </div>
   <div id="delivery_field" class="my_menu2" style="display: none; margin-bottom: 20px">
     <div style="width: 100%; display: flex; justify-content: space-between;">
       <p>Valor Delivery:</p>
-      <span style="display: inline">R$ <input style="width:60px; display: inline" id="delivery_valor" class="field_sizing form-control" placeholder="0,00" onkeypress='return event.charCode === 44 || (event.charCode >= 48 && event.charCode <= 57)' name="delivery_value" onblur="deliveryValue()" value="0,00"></span>
+      <span style="display: inline">R$ <input style="width:60px; display: inline" id="delivery_valor" class="field_sizing form-control" placeholder="0,00" onkeypress='return event.charCode === 44 || (event.charCode >= 48 && event.charCode <= 57)' name="delivery_value" onblur="deliveryValue()" value="0,00" autocomplete="off"></span>
     </div>
   </div>
   <div class="my_menu2">
     <div style="width: 100%; display: flex; justify-content: space-between;">
       <p>Data para entrega:</p>
-      <input style="width:120px;" id="date_field" class="field_sizing form-control datepicker" data-date-format="dd/mm/yyyy" placeholder="Data" data-date-autoclose=true data-date-today-highlight=true name="data_field">
+      <input style="width:120px;" id="date_field" class="field_sizing form-control datepicker" data-date-format="dd/mm/yyyy" placeholder="Data" data-date-autoclose=true data-date-today-highlight=true name="data_field" autocomplete="off">
     </div>
   </div>
   <div class="my_menu2" style="margin-bottom: 20px">
     <div style="width: 100%; display: flex; justify-content: space-between;">
       <p style="margin-top: 5px">Desconto:</p>
-      <span style="display: inline">R$ <input style="width:60px; display: inline" id="desconto" class="field_sizing form-control" placeholder="0,00" onkeypress='return event.charCode === 45 || event.charCode === 44 || (event.charCode >= 48 && event.charCode <= 57)' onblur="descontoValue()"></span>
+      <span style="display: inline">R$ <input style="width:60px; display: inline" id="desconto" class="field_sizing form-control" placeholder="0,00" onkeypress='return event.charCode === 45 || event.charCode === 44 || (event.charCode >= 48 && event.charCode <= 57)' onblur="descontoValue()" autocomplete="off"></span>
     </div>
   </div>
   <div style="margin: 20px auto 0 auto;" class="my_menu2">
