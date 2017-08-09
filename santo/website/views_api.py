@@ -777,7 +777,7 @@ def pedidos_filter(request):
                 for i in filtered:
                     filtered_temp.append(i)
                     if serializer.validated_data["nome"]:
-                        if serializer.validated_data["nome"] not in models.Cliente.objects.get(id=i.cliente_id).nome:
+                        if serializer.validated_data["nome"].lower() not in models.Cliente.objects.get(id=i.cliente_id).nome:
                             filtered_temp.remove(i)
                             continue
                     if serializer.validated_data["telefone"]:
