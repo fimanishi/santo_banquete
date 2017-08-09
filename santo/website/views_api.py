@@ -446,9 +446,9 @@ def estoque_add_finish(request):
                 # gets the object that matches the ingrediente selection
                 ingredient_id = models.Ingrediente.objects.get(nome=item["ingrediente"])
                 # updates quantidada in estoque
-                ingredient_id.estoque += Decimal(item["quantidade"]) * Decimal(item["unidade"])
+                ingredient_id.estoque += Decimal(item["quantidade"]) * Decimal(item["por_unidade"])
                 # updates quantidade in total_comprado
-                ingredient_id.total_comprado += Decimal(item["quantidade"]) * Decimal(item["unidade"])
+                ingredient_id.total_comprado += Decimal(item["quantidade"]) * Decimal(item["por_unidade"])
                 # updates the date in ultima_compra
                 ingredient_id.ultima_compra = date.today()
                 # updates valor in valor_comprado
